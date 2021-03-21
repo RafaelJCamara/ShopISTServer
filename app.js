@@ -48,15 +48,11 @@ app.use((req, res, next) => {
 
 
 //ROUTES
-
 app.post("/signup", async (req, res) => {
     console.log("**********************************");
     console.log("There was a signup request");
     console.log(req.body);
     console.log("**********************************");
-    res.status(200).send();
-
-    /*
     try {
         const {
             username,
@@ -71,21 +67,18 @@ app.post("/signup", async (req, res) => {
         //register user with passport
         const registeredUser = await User.register(user, password);
         req.login(registeredUser, err => {
-            if (err) return next(err)
-
-            //send success message to android application
-            const message = {
-                message: "Successfully signed in!!"
+            if (err) {
+                console.log("Error!");
+                return res.status(404).send();
             }
-            return res.status(200).send(JSON.stringify(message));
+            console.log("Success!");
+            //send success message to android application
+            return res.status(200).send();
         });
     } catch (e) {
         //error occured
-        req.flash("error", e.message);
-        res.redirect("register");
+        return res.status(404).send();
     }
-    */
-
 });
 
 app.post("/login", (req, res) => {
@@ -93,6 +86,10 @@ app.post("/login", (req, res) => {
     console.log("There was a login request");
     console.log(req.body);
     console.log("**********************************");
+
+    passport.authenticate("local", (req, res) => {
+        console.log("Success in the login...");
+    })
 
     //search user details on database
     const userFound = {
@@ -115,7 +112,6 @@ app.use((err, req, res, next) => {
         statusCode,
         message
     }
-
     res.status(statusCode).send(JSON.stringify(error));
 });
 
