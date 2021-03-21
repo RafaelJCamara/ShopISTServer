@@ -49,11 +49,14 @@ app.use((req, res, next) => {
 
 //ROUTES
 
-app.post("signup", (req, res) => {
+app.post("/signup", async (req, res) => {
     console.log("**********************************");
     console.log("There was a signup request");
+    console.log(req.body);
     console.log("**********************************");
+    res.status(200).send();
 
+    /*
     try {
         const {
             username,
@@ -69,17 +72,19 @@ app.post("signup", (req, res) => {
         const registeredUser = await User.register(user, password);
         req.login(registeredUser, err => {
             if (err) return next(err)
+
             //send success message to android application
             const message = {
                 message: "Successfully signed in!!"
             }
-            res.status(200).send(JSON.stringify(message));
+            return res.status(200).send(JSON.stringify(message));
         });
     } catch (e) {
         //error occured
         req.flash("error", e.message);
         res.redirect("register");
     }
+    */
 
 });
 
@@ -88,6 +93,12 @@ app.post("/login", (req, res) => {
     console.log("There was a login request");
     console.log(req.body);
     console.log("**********************************");
+
+    //search user details on database
+    const userFound = {
+        name: "Rafael_username_from_nodejs",
+        email: "Rafael_email_from_nodejs"
+    }
 
     //send object to android client
     res.status(200).send(JSON.stringify(userFound));
