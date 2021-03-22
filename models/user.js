@@ -8,10 +8,17 @@ const UserSchema = new Schema({
         type: String,
         required: true,
         unique: true
+    },
+    username: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    password: {
+        type: String,
+        required: true
     }
 });
 
-//adding passport (it generates a username [unique] and password)
-UserSchema.plugin(passportLocalMongoose);
 
 module.exports = mongoose.model("User", UserSchema);
