@@ -3,8 +3,6 @@ const app = express();
 const mongoose = require("mongoose");
 const dbUrl = "mongodb://localhost:27017/shopist";
 const db = mongoose.connection;
-const User = require("./models/user");
-const bcrypt = require("bcrypt");
 const userRouter = require("./routes/users");
 const productRouter = require("./routes/products");
 const listRouter = require("./routes/lists");
@@ -29,12 +27,6 @@ db.once("open", () => {
 
 //using json
 app.use(express.json());
-
-const hashPassword = async (password) => {
-    const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    return hashedPassword;
-}
 
 
 //ROUTES
