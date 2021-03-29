@@ -16,7 +16,13 @@ const UserSchema = new Schema({
     password: {
         type: String,
         required: true
-    }
+    },
+    lists: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: "List"
+        }
+    ]
 });
 
 
