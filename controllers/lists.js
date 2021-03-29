@@ -6,6 +6,7 @@ const options = {
 };
 const uid = new ShortUniqueId(options);
 
+//when the user presses the button to create the list
 module.exports.createList = async (req, res) => {
     console.log("******************");
     console.log("Request for list creation");
@@ -23,10 +24,11 @@ module.exports.createList = async (req, res) => {
     res.status(200).send(JSON.stringify(info));
 };
 
+//when someone enters the list code
 module.exports.getList = async (req, res) => {
     const { listId } = req.params;
     console.log("************");
-    console.log("This was a list request.");
+    console.log("Someone wants to sync with a list.");
     console.log("This was the list ID", listId);
     console.log("************");
 
@@ -44,10 +46,12 @@ module.exports.getList = async (req, res) => {
     res.status(200).send(JSON.stringify(sendList));
 };
 
+//when someone deletes the list
 module.exports.deleteList = async (req, res) => {
 
 };
 
+//when someone adds or removes a product from the list or changes the list name
 module.exports.updateList = async (req, res) => {
 
 };

@@ -1,6 +1,7 @@
 const Product = require("../models/product");
 const List = require("../models/list");
 
+//when someone wants to create a product
 module.exports.createProduct = async (req, res) => {
     console.log("**********************************");
     console.log("There was a create product request");
@@ -27,8 +28,14 @@ module.exports.createProduct = async (req, res) => {
     }
 };
 
+//when someone wants to check a specific product detail
 module.exports.getProduct = async (req, res) => {
+    console.log("**********************************");
+    console.log("There was a request to check product detail.");
+    console.log(req.body);
+    console.log("**********************************");
 
+    //find product by some parameter
 };
 
 module.exports.deleteProduct = async (req, res) => {
