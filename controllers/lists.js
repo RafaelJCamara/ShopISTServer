@@ -1,7 +1,20 @@
 const List = require("../models/list");
+const { default: ShortUniqueId } = require('short-unique-id');
+const options = {
+    length: 7,
+    shuffle: false
+};
+const uid = new ShortUniqueId(options);
 
 module.exports.createList = async (req, res) => {
-
+    console.log("******************");
+    console.log("Request for list creation");
+    console.log(req.body);
+    const listUuid = uid();
+    console.log(listUuid);
+    console.log("******************");
+    const info = { listId: listUuid };
+    res.status(200).send(JSON.stringify(info));
 };
 
 module.exports.getList = async (req, res) => {
