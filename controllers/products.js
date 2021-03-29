@@ -14,6 +14,12 @@ module.exports.createProduct = async (req, res) => {
         await newProduct.save();
 
         //add product to the list
+        const foundList = List.find({
+            uuid: listToken
+        });
+
+        foundList[0].products.push(newProduct);
+        await foundList[0].save();
 
         res.status(200).send();
     } catch (e) {

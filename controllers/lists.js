@@ -10,9 +10,15 @@ module.exports.createList = async (req, res) => {
     console.log("******************");
     console.log("Request for list creation");
     console.log(req.body);
-    const listUuid = uid();
-    console.log(listUuid);
     console.log("******************");
+    const listUuid = uid();
+    //create list
+    const newList = new List({
+        name: req.body.name,
+        product: [],
+        uuid: listUuid
+    });
+    await newList.save();
     const info = { listId: listUuid };
     res.status(200).send(JSON.stringify(info));
 };
