@@ -11,14 +11,11 @@ module.exports.createProduct = async (req, res) => {
     const { name, price, description, listToken } = req.body;
     try {
         const convertedPrice = parseInt(price);
-        const newProduct = new Product({ name, convertedPrice, description });
+        const newProduct = new Product({ name, price: convertedPrice, description });
         await newProduct.save();
 
         //add product to the list
-        const foundList = List.find({
-            uuid: listToken
-        });
-
+        const foundList = await List.find({ uuid: listToken });
         foundList[0].products.push(newProduct);
         await foundList[0].save();
 
