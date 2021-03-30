@@ -35,18 +35,13 @@ module.exports.getList = async (req, res) => {
     //retrieve the list from the database
     const foundList = await List.find({
         uuid: listId
-    });
+    }).populate("products");
 
     const sendList = {
         uuid: foundList[0].uuid,
         name: foundList[0].name,
         products: foundList[0].products
     }
-
-    console.log("************");
-    console.log("This is the list: ", sendList);
-    console.log("************");
-
 
     res.status(200).send(JSON.stringify(sendList));
 };
