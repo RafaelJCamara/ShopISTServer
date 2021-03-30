@@ -6,14 +6,17 @@ const ProductSchema = new Schema({
     name: {
         type: String,
         required: true,
-        unique: true
     },
     price: {
         type: Number,
         min: 0,
-        required: true,
     },
-    description: String
+    description: String,
+    quantity: {
+        type: Number,
+        min: 1,
+        default: 1
+    }
 });
 
 
