@@ -6,6 +6,7 @@ const db = mongoose.connection;
 const userRouter = require("./routes/users");
 const productRouter = require("./routes/products");
 const listRouter = require("./routes/lists");
+const storeRouter = require("./routes/stores");
 
 //connect to database
 
@@ -39,6 +40,9 @@ app.use("/product", productRouter);
 
 //user routes
 app.use("/list", listRouter);
+
+//store routes
+app.use("/store", storeRouter);
 
 
 app.listen("3000", () => {

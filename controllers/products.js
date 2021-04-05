@@ -8,10 +8,11 @@ module.exports.createProduct = async (req, res) => {
     console.log(req.body);
     console.log("**********************************");
     //get user info
-    const { name, price, description, listToken } = req.body;
+    const { name, description, quantityToBuy, listToken } = req.body;
     try {
-        const convertedPrice = parseInt(price);
-        const newProduct = new Product({ name, price: convertedPrice, description });
+        //PARSE DOUBLE    
+        //const convertedPrice = parseInt(price);
+        const newProduct = new Product({ name, quantityToBuy, description });
         await newProduct.save();
 
         //add product to the list
