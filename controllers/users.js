@@ -17,11 +17,21 @@ module.exports.signup = async (req, res) => {
     const { username, email, password } = req.body;
     try {
         const hashedPassword = await hashPassword(password);
-        const newUser = new User({ username, email, password: hashedPassword });
-        await newUser.save();
+
+        console.log("Hashed password: ", hashedPassword);
+
+        const newUser = await User.create({
+            username: username,
+            email: email,
+            password: hashedPassword
+        });
+
         res.status(200).send();
     } catch (e) {
+        console.log("**********************************");
+        console.log("There was an error in the signup!");
         console.log("Error: ", e);
+        console.log("**********************************");
     }
 };
 
@@ -31,16 +41,20 @@ module.exports.login = async (req, res) => {
     console.log(req.body);
     console.log("**********************************");
 
-    const foundUser = await User.find({ email: req.body.email });
+    const foundUser = await User.findOne({
+        where: {
+            email: req.body.email
+        }
+    });
 
-    const comparePw = await bcrypt.compare(req.body.password, foundUser[0].password);
+    const comparePw = await bcrypt.compare(req.body.password, foundUser.password);
 
     if (comparePw) {
         //matching passwords
         console.log("Matching passwords");
         const sendUser = {
-            name: foundUser[0].username,
-            email: foundUser[0].email
+            name: foundUser.username,
+            email: foundUser.email
         }
         return res.status(200).send(JSON.stringify(sendUser));
     } else {

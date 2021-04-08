@@ -111,7 +111,9 @@ CartModel.belongsTo(StoreModel, {
 
 
 //update every model on the database
-sequelize.sync({ force: true });
+sequelize.sync({
+    logging: false
+});
 
 
 //using json
