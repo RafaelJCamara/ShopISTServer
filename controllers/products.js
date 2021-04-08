@@ -1,5 +1,5 @@
-// const Product = require("../models/product");
-// const List = require("../models/list");
+const Product = require("../models/product");
+
 
 //when someone wants to create a product
 module.exports.createProduct = async (req, res) => {
@@ -8,18 +8,11 @@ module.exports.createProduct = async (req, res) => {
     console.log(req.body);
     console.log("**********************************");
     //get user info
-    const { name, description, quantityToBuy, listToken } = req.body;
+    const { name, description, barcode, producttype } = req.body;
     try {
-        //PARSE DOUBLE    
-        //const convertedPrice = parseInt(price);
-        const newProduct = new Product({ name, quantityToBuy, description });
-        await newProduct.save();
-
-        //add product to the list
-        const foundList = await List.find({ uuid: listToken });
-        foundList[0].products.push(newProduct);
-        await foundList[0].save();
-
+        const newProduct = await Product.create({
+            name, description, barcode, producttype
+        });
         res.status(200).send();
     } catch (e) {
         console.log("Error: ", e);
@@ -27,13 +20,15 @@ module.exports.createProduct = async (req, res) => {
 };
 
 //when someone wants to check a specific product detail
+//the product is closely linked with the list it is a part of
+//ex a product selected in the context of a pantry list will show different info
+// (continuation of last line) if selected when in the shop context
 module.exports.getProduct = async (req, res) => {
     console.log("**********************************");
     console.log("There was a request to check product detail.");
     console.log(req.body);
     console.log("**********************************");
 
-    //find product by some parameter
 };
 
 module.exports.deleteProduct = async (req, res) => {

@@ -1,17 +1,34 @@
 const express = require("express");
 const router = express.Router();
-const listController = require("../controllers/lists");
+const pantryListController = require("../controllers/pantryList");
+const generalListController = require("../controllers/generalList");
+
+/* 
+    General list operations
+*/
+
+//checking out at a store
+router.post("/checkout", generalListController.generateShoppingLists);
+
+/*
+    Pantry list routes
+*/
 
 //get a list by it's code
-router.get("/:listId", listController.getList);
+router.get("/pantry/:listId", pantryListController.getList);
 
 //add product to list
-router.put("/:listId", listController.updateList);
+router.put("/pantry/:listId", pantryListController.updateList);
 
 //create a list
-router.post("/", listController.createList);
+router.post("/pantry/", pantryListController.createList);
 
-//add products to list after finishing the shopping
-router.post("/:listId/checkout", listController.checkout);
+
+/*
+    Shopping list routes
+*/
+
+
+
 
 module.exports = router;
