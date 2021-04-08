@@ -40,21 +40,47 @@ PantryListModel.belongsToMany(UserModel, { through: 'PantryToShopping' });
 /**
  * M-M relationship between PantryList and Products
  */
-PantryListModel.belongsToMany(ProductModel, { through: 'PantryListProducts' });
-ProductModel.belongsToMany(PantryListModel, { through: 'PantryListProducts' });
+
+const PantryListProducts = sequelize.define('PantryListProduct', {
+    stock: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+}, { timestamps: false });
+
+PantryListModel.belongsToMany(ProductModel, { through: PantryListProducts });
+ProductModel.belongsToMany(PantryListModel, { through: PantryListProducts });
 
 /**
  * M-M relationship between ShoppingList and Products
  */
-ShoppingListModel.belongsToMany(ProductModel, { through: 'ShoppingListProducts' });
-ProductModel.belongsToMany(ShoppingListModel, { through: 'ShoppingListProducts' });
+
+const ShoppingListProducts = sequelize.define('ShoppingListProduct', {
+    needed: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+}, { timestamps: false });
+
+ShoppingListModel.belongsToMany(ProductModel, { through: ShoppingListProducts });
+ProductModel.belongsToMany(ShoppingListModel, { through: ShoppingListProducts });
 
 /**
  * M-M relationship between Store and Products
  */
 
-StoreModel.belongsToMany(ProductModel, { through: "ShoppingListProducts" });
-ProductModel.belongsToMany(StoreModel, { through: "ShoppingListProducts" });
+const StoreProducts = sequelize.define('StoreProduct', {
+    stock: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    price: {
+        type: DataTypes.DOUBLE(6, 2),
+        allowNull: false
+    },
+}, { timestamps: false });
+StoreModel.belongsToMany(ProductModel, { through: StoreProducts });
+ProductModel.belongsToMany(StoreModel, { through: StoreProducts });
 
 
 /**
