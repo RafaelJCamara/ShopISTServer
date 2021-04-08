@@ -1,30 +1,38 @@
-const { Sequelize, DataTypes } = require("sequelize");
-const sequelize = require("../database/connection");
+'use strict';
 
+const { DataTypes } = require("sequelize");
 
-module.exports = sequelize.define("Store", {
-    id: {
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    return queryInterface.createTable("stores", {
+      id: {
         type: Sequelize.INTEGER(11),
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-    },
-    name: {
+      },
+      name: {
         type: Sequelize.STRING(50),
         allowNull: false
-    },
-    location: {
+      },
+      location: {
         type: 'Point',
         coordinates: DataTypes.ARRAY(DataTypes.DOUBLE),
         allowNull: false
-    },
-    address: {
+      },
+      address: {
         type: Sequelize.STRING(50),
         allowNull: false
-    },
-    storetype: {
+      },
+      storetype: {
         type: DataTypes.ENUM,
         values: ['Food', "ConsumerElectronics", "Clothes", "PersonalCleaning", "Other"],
         allowNull: false,
-    },
-});
+      },
+    })
+  },
+
+  down: async (queryInterface, Sequelize) => {
+    return queryInterface.dropTable("stores");
+  }
+};

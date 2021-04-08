@@ -2,24 +2,20 @@ const { Sequelize } = require("sequelize");
 const sequelize = require("../database/connection");
 
 
-module.exports = sequelize.define("User", {
+module.exports = sequelize.define("PantryList", {
     id: {
         type: Sequelize.INTEGER(11),
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
     },
-    username: {
+    name: {
         type: Sequelize.STRING(50),
         allowNull: false
     },
-    email: {
-        type: Sequelize.STRING(50),
+    uuid: {
+        type: Sequelize.STRING(7),
         allowNull: false,
-        unique: true
-    },
-    password: {
-        type: Sequelize.STRING(50),
-        allowNull: false,
+        unique: true,
     }
 });

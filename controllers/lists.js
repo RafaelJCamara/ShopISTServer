@@ -1,5 +1,5 @@
-const List = require("../models/list");
-const Product = require("../models/product");
+// const List = require("../models/list");
+// const Product = require("../models/product");
 const { default: ShortUniqueId } = require('short-unique-id');
 const options = {
     length: 7,
@@ -94,11 +94,13 @@ module.exports.checkout = async (req, res) => {
     //get corresponding lists
     const shopList = await List.find({
         uuid: shoppingListID
-    });
+    }).populate("products");
 
     const pantryList = await List.find({
         uuid: listId
-    });
+    }).populate("products");
+
+    let toBeDeleted = [];
 
     //add products to pantry list
     //remove products from shopping list
@@ -106,25 +108,24 @@ module.exports.checkout = async (req, res) => {
         //check if pantry list contains existent product
         if (pantryList[0].products.some(prod => prod.name === element.name)) {
             //product exists
-            pantryList[0].products.forEach(product => {
+            pantryList[0].products.forEach((product, index) => {
                 if (product.name === element.name) {
                     //same object
                     //update quantity stored
-                    product.quantityToBuy += element.quantityToBuy;
+                    pantryList[0].products[index].quantityToBuy = Number(product.quantityToBuy) + Number(element.quantityToBuy);
                 }
             });
+
         } else {
             //product does not exists
             //add product to pantry list (product was bought without being planned)
             pantryList[0].products.push(element);
         }
 
-        let toBeDeleted = [];
-
         //check if shopping list contains the product purchased
         if (shopList[0].products.some(prod => prod.name === element.name)) {
             //product exists
-            shopList[0].products.forEach(product => {
+            shopList[0].products.forEach((product, index) => {
                 if (product.name === element.name) {
                     //same object
                     //subtract quantity stored
@@ -134,7 +135,7 @@ module.exports.checkout = async (req, res) => {
                         toBeDeleted.push(product);
                     } else {
                         //there is still missing products to be bought
-                        product.quantityToBuy -= element.quantityToBuy;
+                        shopList[0].products[index].quantityToBuy = Number(product.quantityToBuy) - Number(element.quantityToBuy);
                     }
                 }
             });
@@ -148,8 +149,8 @@ module.exports.checkout = async (req, res) => {
 
     shopList[0].products = newShopList;
 
-    await pantryList.save();
-    await shopList.save();
+    await pantryList[0].save();
+    await shopList[0].save();
 
     const message = {
         message: "Success!"

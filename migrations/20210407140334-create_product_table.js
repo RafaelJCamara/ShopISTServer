@@ -1,26 +1,34 @@
-const { Sequelize, DataTypes } = require("sequelize");
-const sequelize = require("../database/connection");
+'use strict';
 
+const { DataTypes } = require("sequelize");
 
-module.exports = sequelize.define("Product", {
-    id: {
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    return queryInterface.createTable("products", {
+      id: {
         type: Sequelize.INTEGER(11),
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-    },
-    description: {
+      },
+      description: {
         type: Sequelize.STRING(100),
         allowNull: false
-    },
-    barcode: {
+      },
+      barcode: {
         type: Sequelize.STRING(255),
         allowNull: false,
         unique: true,
-    },
-    producttype: {
+      },
+      storetype: {
         type: DataTypes.ENUM,
         values: ['Food', "ConsumerElectronics", "Clothes", "PersonalCleaning", "Other"],
         allowNull: false,
-    },
-});
+      },
+    })
+  },
+
+  down: async (queryInterface, Sequelize) => {
+    return queryInterface.dropTable("products");
+  }
+};

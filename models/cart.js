@@ -1,25 +1,24 @@
 const { Sequelize } = require("sequelize");
 const sequelize = require("../database/connection");
 
-
-module.exports = sequelize.define("User", {
+module.exports = sequelize.define("Cart", {
     id: {
         type: Sequelize.INTEGER(11),
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
     },
-    username: {
-        type: Sequelize.STRING(50),
+    name: {
+        type: Sequelize.STRING(30),
         allowNull: false
     },
-    email: {
-        type: Sequelize.STRING(50),
-        allowNull: false,
-        unique: true
+    total: {
+        type: Sequelize.DOUBLE(6, 2),
+        defaultValue: 0,
+        allowNull: false
     },
-    password: {
-        type: Sequelize.STRING(50),
-        allowNull: false,
+    checkoutQueueTime: {
+        type: Sequelize.DOUBLE(4, 2),
+        allowNull: false
     }
 });

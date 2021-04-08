@@ -21,10 +21,17 @@
     "bcrypt": "^5.0.1",
     "ejs": "^3.1.6",
     "express": "^4.17.1",
+    "mariadb": "^2.5.3",
     "mongoose": "^5.12.1",
+    "mysql": "^2.18.1",
+    "mysql2": "^2.2.5",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
     "passport-local-mongoose": "^6.1.0",
+    "sequelize": "^6.6.2",
     "short-unique-id": "^3.2.3"
+  },
+  "devDependencies": {
+    "sequelize-cli": "^6.2.0"
   }
 }

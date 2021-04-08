@@ -1,5 +1,5 @@
-const Product = require("../models/product");
-const List = require("../models/list");
+// const Product = require("../models/product");
+// const List = require("../models/list");
 
 //when someone wants to create a product
 module.exports.createProduct = async (req, res) => {

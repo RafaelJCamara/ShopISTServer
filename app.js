@@ -1,29 +1,91 @@
 const express = require("express");
 const app = express();
-const mongoose = require("mongoose");
-const dbUrl = "mongodb://localhost:27017/shopist";
-const db = mongoose.connection;
 const userRouter = require("./routes/users");
 const productRouter = require("./routes/products");
 const listRouter = require("./routes/lists");
 const storeRouter = require("./routes/stores");
+const mysql = require("mysql");
+const sequelize = require("./database/connection");
+const { DataTypes } = require("sequelize");
+const UserModel = require("./models/user");
+const PantryListModel = require("./models/pantrylist");
+const ShoppingListModel = require("./models/shoppinglist");
+const CartModel = require("./models/cart");
+const StoreModel = require("./models/store");
+const ProductModel = require("./models/product");
 
-//connect to database
 
-//part 1
-mongoose.connect(dbUrl, {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useUnifiedTopology: true,
-    useFindAndModify: false
+//Relationship associations
+
+
+//Relationship associations
+/**
+ * M-M relationship between User and PantryList
+ */
+UserModel.belongsToMany(PantryListModel, { through: 'UserPantryList' });
+PantryListModel.belongsToMany(UserModel, { through: 'UserPantryList' });
+
+/**
+ * M-M relationship between User and ShoppingList
+ */
+UserModel.belongsToMany(ShoppingListModel, { through: 'UserShoppingList' });
+ShoppingListModel.belongsToMany(UserModel, { through: 'UserShoppingList' });
+
+/**
+ * M-M relationship between PantryList and ShoppingList
+ */
+UserModel.belongsToMany(PantryListModel, { through: 'PantryToShopping' });
+PantryListModel.belongsToMany(UserModel, { through: 'PantryToShopping' });
+
+/**
+ * M-M relationship between PantryList and Products
+ */
+PantryListModel.belongsToMany(ProductModel, { through: 'PantryListProducts' });
+ProductModel.belongsToMany(PantryListModel, { through: 'PantryListProducts' });
+
+/**
+ * M-M relationship between ShoppingList and Products
+ */
+ShoppingListModel.belongsToMany(ProductModel, { through: 'ShoppingListProducts' });
+ProductModel.belongsToMany(ShoppingListModel, { through: 'ShoppingListProducts' });
+
+/**
+ * M-M relationship between Store and Products
+ */
+
+StoreModel.belongsToMany(ProductModel, { through: "ShoppingListProducts" });
+ProductModel.belongsToMany(StoreModel, { through: "ShoppingListProducts" });
+
+
+/**
+ * 1-M relationship between ShoppingList and Cart
+ */
+ShoppingListModel.hasMany(CartModel, {
+    foreignKey: "shoppingId",
+    as: "carts"
 });
 
-//part 2
-db.on("error", console.error.bind(console, "connection error:"));
-db.once("open", () => {
-    console.log("Database connected...");
+CartModel.belongsTo(ShoppingListModel, {
+    foreignKey: "shoppingId",
+    as: "shoppingList"
 });
-//end connect to database
+
+
+/**
+ * 1-M relationship between Store and Cart
+ */
+StoreModel.hasMany(CartModel, {
+    foreignKey: "storeId",
+    as: "carts"
+});
+CartModel.belongsTo(StoreModel, {
+    foreignKey: "storeId",
+    as: "store"
+});
+
+
+//update every model on the database
+sequelize.sync({ force: true });
 
 
 //using json
