@@ -13,7 +13,8 @@ const ShoppingListModel = require("./models/shoppinglist");
 const CartModel = require("./models/cart");
 const StoreModel = require("./models/store");
 const ProductModel = require("./models/product");
-
+const ShoppingListProducts = require("./models/shoppinglistproduct");
+const PantryToShopping = require("./models/pantrytoshopping");
 
 //Relationship associations
 
@@ -34,8 +35,8 @@ ShoppingListModel.belongsToMany(UserModel, { through: 'UserShoppingList' });
 /**
  * M-M relationship between PantryList and ShoppingList
  */
-ShoppingListModel.belongsToMany(PantryListModel, { through: 'PantryToShopping' });
-PantryListModel.belongsToMany(ShoppingListModel, { through: 'PantryToShopping' });
+ShoppingListModel.belongsToMany(PantryListModel, { through: PantryToShopping });
+PantryListModel.belongsToMany(ShoppingListModel, { through: PantryToShopping });
 
 /**
  * M-M relationship between PantryList and Products
@@ -58,13 +59,6 @@ ProductModel.belongsToMany(PantryListModel, { through: PantryListProducts });
 /**
  * M-M relationship between ShoppingList and Products
  */
-
-const ShoppingListProducts = sequelize.define('ShoppingListProduct', {
-    needed: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
-}, { timestamps: false });
 
 ShoppingListModel.belongsToMany(ProductModel, { through: ShoppingListProducts });
 ProductModel.belongsToMany(ShoppingListModel, { through: ShoppingListProducts });
@@ -124,7 +118,6 @@ app.use(express.json());
 
 
 //ROUTES
-
 
 //user routes
 app.use("/user", userRouter);
