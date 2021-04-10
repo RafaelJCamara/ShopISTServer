@@ -7,8 +7,12 @@ const generalListController = require("../controllers/generalList");
     General list operations
 */
 
+//when someone has a pantry list and tries to generate a shopping
+router.post("/generateShoppingLists", generalListController.generateShoppingLists);
+
 //checking out at a store
-router.post("/checkout", generalListController.generateShoppingLists);
+router.post("/checkout", generalListController.checkout);
+
 
 /*
     Pantry list routes

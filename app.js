@@ -34,8 +34,8 @@ ShoppingListModel.belongsToMany(UserModel, { through: 'UserShoppingList' });
 /**
  * M-M relationship between PantryList and ShoppingList
  */
-UserModel.belongsToMany(PantryListModel, { through: 'PantryToShopping' });
-PantryListModel.belongsToMany(UserModel, { through: 'PantryToShopping' });
+ShoppingListModel.belongsToMany(PantryListModel, { through: 'PantryToShopping' });
+PantryListModel.belongsToMany(ShoppingListModel, { through: 'PantryToShopping' });
 
 /**
  * M-M relationship between PantryList and Products
@@ -43,6 +43,10 @@ PantryListModel.belongsToMany(UserModel, { through: 'PantryToShopping' });
 
 const PantryListProducts = sequelize.define('PantryListProduct', {
     stock: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    needed: {
         type: DataTypes.INTEGER,
         allowNull: false
     },
@@ -109,7 +113,6 @@ CartModel.belongsTo(StoreModel, {
     as: "store"
 });
 
-
 //update every model on the database
 sequelize.sync({
     logging: false
@@ -121,6 +124,7 @@ app.use(express.json());
 
 
 //ROUTES
+
 
 //user routes
 app.use("/user", userRouter);
