@@ -15,8 +15,8 @@ const StoreModel = require("./models/store");
 const ProductModel = require("./models/product");
 const ShoppingListProducts = require("./models/shoppinglistproduct");
 const PantryToShopping = require("./models/pantrytoshopping");
-
-//Relationship associations
+const PantryListProducts = require("./models/pantrylistproduct");
+const StoreProducts = require("./models/storeproducts");
 
 
 //Relationship associations
@@ -42,17 +42,6 @@ PantryListModel.belongsToMany(ShoppingListModel, { through: PantryToShopping });
  * M-M relationship between PantryList and Products
  */
 
-const PantryListProducts = sequelize.define('PantryListProduct', {
-    stock: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
-    needed: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
-}, { timestamps: false });
-
 PantryListModel.belongsToMany(ProductModel, { through: PantryListProducts });
 ProductModel.belongsToMany(PantryListModel, { through: PantryListProducts });
 
@@ -67,16 +56,6 @@ ProductModel.belongsToMany(ShoppingListModel, { through: ShoppingListProducts })
  * M-M relationship between Store and Products
  */
 
-const StoreProducts = sequelize.define('StoreProduct', {
-    stock: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
-    price: {
-        type: DataTypes.DOUBLE(6, 2),
-        allowNull: false
-    },
-}, { timestamps: false });
 StoreModel.belongsToMany(ProductModel, { through: StoreProducts });
 ProductModel.belongsToMany(StoreModel, { through: StoreProducts });
 

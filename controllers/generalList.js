@@ -10,7 +10,7 @@ const options = {
 const uid = new ShortUniqueId(options);
 const ShoppingListProductModel = require("../models/shoppinglistproduct");
 const PantryToShoppingModel = require("../models/pantrytoshopping");
-
+const PantryListProduct = require("../models/pantrylistproduct");
 
 const checkIfPantryListHasContributed = async (pantryListID, shoppingListID) => {
     try {
@@ -40,6 +40,9 @@ const checkIfPantryListHasContributed = async (pantryListID, shoppingListID) => 
     }
 };
 
+const updateBoughtProductsAmount = (boughtProducts, productName, quantity) => {
+
+}
 
 //when a user clicks tries to generate shopping lists from the selected pantry lists
 module.exports.generateShoppingLists = async (req, res) => {
@@ -168,7 +171,7 @@ module.exports.checkout = async (req, res) => {
 
     //Id of the list that originated the cart
     //List of the products bought
-    const { shoppingListId, boughtProducts } = req.body;
+    let { shoppingListId, boughtProducts } = req.body;
 
     //find and update the corresponding shopping list
     const shoppingList = await ShoppingListModel.findOne({
@@ -179,7 +182,6 @@ module.exports.checkout = async (req, res) => {
 
     //ID from database
     const shopListID = shoppingList.id;
-
 
     //for each bought product from that shopping list
     //update the quantity in the M-M relationship between Shopping List and Product
@@ -202,6 +204,7 @@ module.exports.checkout = async (req, res) => {
         const newQuantity = oldEntry.needed - boughtProduct.quantity;
 
         //if newQuantity > 0 update the object
+        //if not delete it
         if (newQuantity) {
             //update
             await ShoppingListProductModel.update(
@@ -224,15 +227,80 @@ module.exports.checkout = async (req, res) => {
                 }
             });
         }
-        //if not delete it
-
-
     });
-
 
     //get the pantry lists (add items from it)
     //the approach is filling the lists                  
-    const pantryLists = {};
+    const pantryLists = await PantryToShoppingModel.findAll({
+        where: {
+            ShoppingListId: shopListID
+        }
+    });
+
+    pantryLists.forEach(async (pantryList) => {
+        const pantryProducts = await PantryListProduct.findAll({
+            where: {
+                PantryListId: pantryList.PantryListId
+            }
+        });
+
+        pantryProducts.forEach(async (pantryProd) => {
+            const currentProduct = await ProductModel.findOne({
+                where: {
+                    id: pantryProd.ProductId
+                }
+            });
+
+            //go to bought products and check what as been bought of each product
+            boughtProducts.forEach(async (boughtProd, index) => {
+                if (boughtProd.name === currentProduct.name) {
+                    //update pantry list product
+                    const boughtQuantity = boughtProd.quantity;
+                    const neededQuantity = pantryProd.needed;
+                    const currentStock = pantryProd.stock;
+                    if (Number(neededQuantity) >= Number(boughtQuantity) + Number(currentStock)) {
+                        console.log("######################################");
+                        console.log("Quantidades máximas não atingidas.");
+                        console.log("######################################");
+                        //put everything bought to this pantry list
+                        await PantryListProduct.update(
+                            {
+                                stock: Number(currentStock) + Number(boughtQuantity)
+                            },
+                            {
+                                where: {
+                                    PantryListId: pantryList.PantryListId,
+                                    ProductId: currentProduct.id,
+                                }
+                            }
+                        );
+                        //update boughtProduct list
+                        boughtProducts[index] = 0;
+
+                    } else {
+                        console.log("######################################");
+                        console.log("Quantidades máximas atingidas.");
+                        console.log("######################################");
+                        //just add the amount necessary
+                        await PantryListProduct.update(
+                            {
+                                stock: Number(currentStock) + (Number(neededQuantity) - Number(currentStock))
+                            },
+                            {
+                                where: {
+                                    PantryListId: pantryList.PantryListId,
+                                    ProductId: currentProduct.id,
+                                }
+                            }
+                        );
+                        //update boughtProduct list
+                        boughtProducts[index] = boughtQuantity - (neededQuantity - currentStock);
+                    }
+                }
+            });
+        });
+
+    });
 
     res.status(200).send();
 };
