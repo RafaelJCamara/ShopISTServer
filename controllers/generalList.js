@@ -158,6 +158,7 @@ module.exports.generateShoppingLists = async (req, res) => {
     res.status(200).send(JSON.stringify(shoppingListVariety));
 };
 
+//when soneone shops and 
 module.exports.checkout = async (req, res) => {
     console.log("******************");
     console.log("Someone just shopped. Will add products to pantry list");
@@ -176,7 +177,58 @@ module.exports.checkout = async (req, res) => {
         }
     });
 
-    console.log(shoppingList);
+    //ID from database
+    const shopListID = shoppingList.id;
+
+
+    //for each bought product from that shopping list
+    //update the quantity in the M-M relationship between Shopping List and Product
+    boughtProducts.forEach(async (boughtProduct) => {
+        //search the product
+        const foundProduct = await ProductModel.findOne({
+            where: {
+                name: boughtProduct.name
+            }
+        });
+        const foundProductId = foundProduct.id;
+
+        const oldEntry = await ShoppingListProductModel.findOne({
+            where: {
+                ShoppingListId: shopListID,
+                ProductId: foundProductId
+            }
+        });
+
+        const newQuantity = oldEntry.needed - boughtProduct.quantity;
+
+        //if newQuantity > 0 update the object
+        if (newQuantity) {
+            //update
+            await ShoppingListProductModel.update(
+                {
+                    needed: newQuantity
+                },
+                {
+                    where: {
+                        ShoppingListId: shopListID,
+                        ProductId: foundProductId
+                    }
+                }
+            );
+        } else {
+            //delete
+            await ShoppingListProductModel.destroy({
+                where: {
+                    ShoppingListId: shopListID,
+                    ProductId: foundProductId
+                }
+            });
+        }
+        //if not delete it
+
+
+    });
+
 
     //get the pantry lists (add items from it)
     //the approach is filling the lists                  
