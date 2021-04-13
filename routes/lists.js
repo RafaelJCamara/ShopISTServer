@@ -21,17 +21,16 @@ router.post("/checkout", generalListController.checkout);
 //get a list by it's code
 router.get("/pantry/:listId", pantryListController.getList);
 
-//add product to list
-router.put("/pantry/:listId", pantryListController.updateList);
-
 //create a list
-router.post("/pantry/", pantryListController.createList);
+router.post("/pantry", pantryListController.createList);
+
+//consume an item from the pantry list
+router.post("/pantry/:listId/consume", pantryListController.consumeProducts);
 
 
 /*
     Shopping list routes
 */
-
 
 
 

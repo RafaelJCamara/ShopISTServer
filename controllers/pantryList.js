@@ -1,6 +1,6 @@
 const PantryListModel = require("../models/pantrylist");
 const ProductModel = require("../models/product");
-
+const PantryListProductModel = require("../models/pantrylistproduct");
 const { default: ShortUniqueId } = require('short-unique-id');
 const options = {
     length: 7,
@@ -61,7 +61,7 @@ module.exports.getList = async (req, res) => {
     res.status(200).send(JSON.stringify(sendList));
 };
 
-//when someone deletes the list
+//when someone deletes the pantry list
 module.exports.deleteList = async (req, res) => {
     const { listId } = req.params;
     console.log("************");
@@ -69,24 +69,71 @@ module.exports.deleteList = async (req, res) => {
     console.log("This was the list ID", listId);
     console.log("************");
 
-    //get the corresponding pantry list
-    const foundList = await PantryListModel.findOne({
-        where: {
-            uuid: listId
-        }
-    });
+    try {
+        //get the corresponding pantry list
+        const foundList = await PantryListModel.findOne({
+            where: {
+                uuid: listId
+            }
+        });
 
-    //first delete the products associated with that list
+        await foundList.destroy();
+    } catch (error) {
 
-    //then delete the list itself
+    }
 
 };
 
-//when someone adds or removes a product from the list or changes the list name
-module.exports.updateList = async (req, res) => {
+//when a user consumes products from the pantry list
+module.exports.consumeProducts = async (req, res) => {
     console.log("************");
-    console.log("Someone wants to update the list.");
+    console.log("Someone consumed itens from the list.");
+    console.log(req.body);
     console.log("************");
+
+    const productsToConsume = req.body.products;
+    const { listId } = req.params;
+
+    productsToConsume.forEach(async (productConsumed) => {
+        try {
+            //search product in the database
+            const foundProduct = await ProductModel.findOne({
+                where: {
+                    name: productConsumed.name
+                }
+            });
+
+            const foundList = await PantryListModel.findOne({
+                where: {
+                    uuid: listId
+                }
+            });
+
+            //make the update
+            const currentProductState = await PantryListProductModel.findOne({
+                where: {
+                    PantryListId: foundList.id,
+                    ProductId: foundProduct.id,
+                }
+            });
+
+            await PantryListProductModel.update(
+                {
+                    stock: Number(currentProductState.stock) - Number(productConsumed.quantity),
+                },
+                {
+                    where: {
+                        PantryListId: foundList.id,
+                        ProductId: foundProduct.id,
+                    }
+                }
+            );
+        } catch (error) {
+            console.log("There was an error.");
+            console.log("Error: ", error);
+        }
+
+    });
 
     res.status(200).send();
 };
