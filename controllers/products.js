@@ -1,5 +1,5 @@
 const Product = require("../models/product");
-
+const { Op } = require("sequelize");
 
 //when someone wants to create a product
 module.exports.createProduct = async (req, res) => {
@@ -28,7 +28,6 @@ module.exports.getProduct = async (req, res) => {
     console.log("There was a request to check product detail.");
     console.log(req.body);
     console.log("**********************************");
-
 };
 
 module.exports.deleteProduct = async (req, res) => {
@@ -37,4 +36,37 @@ module.exports.deleteProduct = async (req, res) => {
 
 module.exports.updateProduct = async (req, res) => {
 
+};
+
+//when someone is
+module.exports.autocompleteProductName = async (req, res) => {
+    console.log("**********************************");
+    console.log("There was a request the matching products.");
+    console.log(req.body);
+    console.log("**********************************");
+
+    const { productPartialName } = req.params;
+    const sendProducts = [];
+
+    try {
+        const foundProducts = await Product.findAll({
+            where: {
+                name: {
+                    [Op.like]: `%${productPartialName}%`,
+                }
+            }
+        });
+
+        foundProducts.forEach(element => {
+            sendProducts.push({
+                name: element.name
+            });
+        });
+    } catch (error) {
+        //no product was found
+        console.log("There was an error!");
+        console.log("Error: ", error);
+    }
+
+    res.status(200).send(JSON.stringify(sendProducts));
 };
