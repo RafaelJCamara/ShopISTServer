@@ -86,6 +86,13 @@ CartModel.belongsTo(StoreModel, {
     as: "store"
 });
 
+/**
+ * 1-1 relationship between Shopping list and Store
+ */
+StoreModel.hasOne(ShoppingListModel);
+ShoppingListModel.belongsTo(StoreModel);
+
+
 //update every model on the database
 sequelize.sync({
     logging: false

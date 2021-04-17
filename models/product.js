@@ -22,9 +22,4 @@ module.exports = sequelize.define("Product", {
         allowNull: false,
         unique: true,
     },
-    producttype: {
-        type: DataTypes.ENUM,
-        values: ['Food', "ConsumerElectronics", "Clothes", "PersonalCleaning", "Other"],
-        allowNull: false,
-    },
 });

@@ -13,18 +13,9 @@ module.exports = sequelize.define("Store", {
         type: Sequelize.STRING(50),
         allowNull: false
     },
-    location: {
-        type: 'Point',
-        coordinates: DataTypes.ARRAY(DataTypes.DOUBLE),
-        allowNull: false
-    },
+    location: DataTypes.GEOMETRY('POINT'),
     address: {
-        type: Sequelize.STRING(50),
+        type: Sequelize.STRING(250),
         allowNull: false
-    },
-    storetype: {
-        type: DataTypes.ENUM,
-        values: ['Food', "ConsumerElectronics", "Clothes", "PersonalCleaning", "Other"],
-        allowNull: false,
     },
 });

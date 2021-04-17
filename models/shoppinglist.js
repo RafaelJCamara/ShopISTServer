@@ -12,6 +12,9 @@ module.exports = sequelize.define("ShoppingList", {
         type: Sequelize.STRING(50),
         allowNull: false
     },
+    address: {
+        type: Sequelize.STRING(250)
+    },
     uuid: {
         type: Sequelize.STRING(7),
         allowNull: false,
