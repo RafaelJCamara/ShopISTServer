@@ -1,5 +1,6 @@
 const Product = require("../models/product");
 const { Op } = require("sequelize");
+const ImageModel = require("../models/images");
 
 //when someone wants to create a product
 module.exports.createProduct = async (req, res) => {
@@ -8,15 +9,44 @@ module.exports.createProduct = async (req, res) => {
     console.log(req.body);
     console.log("**********************************");
     //get user info
-    const { name, description, barcode, producttype } = req.body;
+    const { name, description, barcode } = req.body;
     try {
         const newProduct = await Product.create({
-            name, description, barcode, producttype
+            name, description, barcode
         });
+
+        //check if photo url exists
+        if (req.body.photoUrl !== undefined) {
+            //means it has a photo url
+            //save it on the database
+            await ImageModel.create({
+                url: req.body.photoUrl,
+                productId: newProduct.id
+            });
+        }
+
         res.status(200).send();
     } catch (e) {
         console.log("Error: ", e);
     }
+};
+
+
+//add a photo to a product
+module.exports.addPhoto = async (req, res) => {
+    console.log("**********************************");
+    console.log("There was a request to add a photo.");
+    console.log("**********************************");
+
+    const { productId } = req.params;
+    const { photoUrl } = req.body;
+
+    await ImageModel.create({
+        url: photoUrl,
+        productId
+    });
+
+    res.status(200).send();
 };
 
 //when someone wants to check a specific product detail

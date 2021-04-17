@@ -19,7 +19,7 @@ router.post("/checkout", generalListController.checkout);
     Pantry list routes
 */
 
-//get a list by it's code
+//get a pantry list by it's code
 router.get("/pantry/:listId", pantryListController.getList);
 
 //create a list
@@ -41,5 +41,7 @@ router.post("/pantry/:listId/update", pantryListController.updatePantry);
 //create a shopping list
 router.post("/shopping", shoppingListController.createList);
 
+//get a pantry list by it's code
+router.get("/shopping/:listId", shoppingListController.getList);
 
 module.exports = router;

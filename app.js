@@ -17,7 +17,7 @@ const ShoppingListProducts = require("./models/shoppinglistproduct");
 const PantryToShopping = require("./models/pantrytoshopping");
 const PantryListProducts = require("./models/pantrylistproduct");
 const StoreProducts = require("./models/storeproducts");
-
+const ImageModel = require("./models/images");
 
 //Relationship associations
 /**
@@ -92,9 +92,22 @@ CartModel.belongsTo(StoreModel, {
 StoreModel.hasOne(ShoppingListModel);
 ShoppingListModel.belongsTo(StoreModel);
 
+/**
+ * 1-M relationship between Images and Products
+ */
+ProductModel.hasMany(ImageModel, {
+    foreignKey: "productId",
+    as: "images"
+});
+ImageModel.belongsTo(ProductModel, {
+    foreignKey: "productId",
+    as: "product"
+});
+
 
 //update every model on the database
 sequelize.sync({
+    force: true,
     logging: false
 });
 

@@ -37,7 +37,7 @@ module.exports.createList = async (req, res) => {
 module.exports.getList = async (req, res) => {
     const { listId } = req.params;
     console.log("************");
-    console.log("Someone wants to sync with a list.");
+    console.log("Someone wants to sync with a pantry list.");
     console.log("This was the list ID", listId);
     console.log("************");
 
@@ -50,6 +50,7 @@ module.exports.getList = async (req, res) => {
     });
 
     const sendList = {
+        name: foundList.name,
         products: [],
     };
 
@@ -123,6 +124,7 @@ module.exports.consumeProducts = async (req, res) => {
             await PantryListProductModel.update(
                 {
                     stock: Number(currentProductState.stock) - Number(productConsumed.quantity),
+                    needed: Number(currentProductState.needed) + Number(productConsumed.quantity)
                 },
                 {
                     where: {
@@ -131,6 +133,26 @@ module.exports.consumeProducts = async (req, res) => {
                     }
                 }
             );
+
+            const foundMatches = await PantryToShoppingModel.findAll({
+                where: {
+                    PantryListId: foundList.id,
+                    productId: foundProduct.id,
+                }
+            });
+
+            foundMatches.forEach(async (el) => {
+                await ShoppingListProductModel.update({
+                    needed: Number(currentProductState.needed) + Number(productConsumed.quantity)
+                },
+                    {
+                        where: {
+                            ShoppingListId: el.ShoppingListId,
+                            ProductId: foundProduct.id,
+                        }
+                    });
+            });
+
         } catch (error) {
             console.log("There was an error.");
             console.log("Error: ", error);
@@ -140,7 +162,6 @@ module.exports.consumeProducts = async (req, res) => {
 
     res.status(200).send();
 };
-
 
 
 /**

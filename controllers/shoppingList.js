@@ -71,8 +71,33 @@ module.exports.createList = async (req, res) => {
 //returns the list and all the products associated with it
 module.exports.getList = async (req, res) => {
     console.log("************");
-    console.log("Someone wants to sync with a list.");
+    console.log("Someone wants to sync with a shopping list.");
     console.log("************");
+
+    const { listId } = req.params;
+
+    const foundList = await ShoppingListModel.findOne({
+        where: {
+            uuid: listId
+        },
+        include: ProductModel
+    });
+
+
+    const shoppingListInfo = {
+        name: foundList.name,
+        products: [],
+    };
+
+    foundList.dataValues.Products.forEach(el => {
+        shoppingListInfo.products.push({
+            name: el.name,
+            description: el.description,
+            needed: el.ShoppingListProduct.needed
+        });
+    });
+
+    res.status(200).send(JSON.stringify(shoppingListInfo));
 };
 
 //when someone deletes the pantry list
