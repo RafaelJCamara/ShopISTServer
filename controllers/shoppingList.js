@@ -47,11 +47,25 @@ module.exports.createList = async (req, res) => {
     const point = { type: 'Point', coordinates: [lat, lon] };
 
     //create the store associated with the shopping list
-    const newStore = await StoreModel.create({
-        name: listName,
-        location: point,
-        address,
-    });
+    let newStore = await StoreModel.findOne(
+        {
+            where: {
+                name: listName,
+                location: point,
+                address
+            }
+        }
+    );
+
+    if (!newStore) {
+        //store does not exists
+        //create store
+        newStore = await StoreModel.create({
+            name: listName,
+            location: point,
+            address,
+        });
+    }
 
     //create the shopping list itself
     const listUuid = uid();
@@ -91,6 +105,7 @@ module.exports.getList = async (req, res) => {
 
     foundList.dataValues.Products.forEach(el => {
         shoppingListInfo.products.push({
+            productId: el.id,
             name: el.name,
             description: el.description,
             needed: el.ShoppingListProduct.needed

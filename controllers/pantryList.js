@@ -56,6 +56,7 @@ module.exports.getList = async (req, res) => {
 
     foundList.Products.forEach(product => {
         sendList.products.push({
+            productId: product.id,
             name: product.name,
             description: product.description,
             stock: product.dataValues.PantryListProduct.stock

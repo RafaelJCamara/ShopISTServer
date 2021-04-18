@@ -61,14 +61,14 @@ ProductModel.belongsToMany(StoreModel, { through: StoreProducts });
 
 
 /**
- * 1-M relationship between ShoppingList and Cart
+ * M-M relationship between ShoppingListProduct and Cart
  */
-ShoppingListModel.hasMany(CartModel, {
+ShoppingListProducts.hasMany(CartModel, {
     foreignKey: "shoppingId",
     as: "carts"
 });
 
-CartModel.belongsTo(ShoppingListModel, {
+CartModel.belongsTo(ShoppingListProducts, {
     foreignKey: "shoppingId",
     as: "shoppingList"
 });
@@ -87,10 +87,17 @@ CartModel.belongsTo(StoreModel, {
 });
 
 /**
- * 1-1 relationship between Shopping list and Store
+ * 1-M relationship between Store and Shopping list
  */
-StoreModel.hasOne(ShoppingListModel);
-ShoppingListModel.belongsTo(StoreModel);
+StoreModel.hasMany(ShoppingListModel, {
+    foreignKey: "StoreId",
+    as: "shoplists"
+});
+ShoppingListModel.belongsTo(StoreModel, {
+    foreignKey: "StoreId",
+    as: "store"
+});
+
 
 /**
  * 1-M relationship between Images and Products
