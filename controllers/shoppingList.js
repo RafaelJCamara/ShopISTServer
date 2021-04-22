@@ -85,13 +85,14 @@ module.exports.createList = async (req, res) => {
 module.exports.getList = async (req, res) => {
     console.log("************");
     console.log("Someone wants to sync with a shopping list.");
+    console.log(req.params);
     console.log("************");
 
     const { listId } = req.params;
 
     const foundList = await ShoppingListModel.findOne({
         where: {
-            uuid: listId
+            uuid: listId.trim()
         },
         include: ProductModel
     });
