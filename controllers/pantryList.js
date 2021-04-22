@@ -11,22 +11,32 @@ const PantryToShoppingModel = require("../models/pantrytoshopping");
 const ShoppingListModel = require("../models/shoppinglist");
 const ShoppingListProductModel = require("../models/shoppinglistproduct");
 
+const NodeGeocoder = require('node-geocoder');
+const optionsGeocoder = {
+    provider: 'opencage',
+    apiKey: 'b86ee0f7cb4844c983b21ab717973b24',
+    formatter: "gpx"
+};
+const geocoder = NodeGeocoder(optionsGeocoder);
+
+
 //when the user presses the button to create the list
 module.exports.createList = async (req, res) => {
     console.log("******************");
     console.log("Request for pantry list creation");
     console.log(req.body);
     console.log("******************");
-    const { name } = req.body;
+    const { name, address } = req.body;
     const listUuid = uid();
 
     const newList = await PantryListModel.create({
         name,
-        uuid: listUuid
+        uuid: listUuid,
+        address
     });
 
     const info = {
-        uuid: listUuid
+        listId: listUuid
     };
 
     res.status(200).send(JSON.stringify(info));
@@ -38,13 +48,13 @@ module.exports.getList = async (req, res) => {
     const { listId } = req.params;
     console.log("************");
     console.log("Someone wants to sync with a pantry list.");
-    console.log("This was the list ID", listId);
+    console.log("This was the list ID", listId.trim());
     console.log("************");
 
     //get list
     const foundList = await PantryListModel.findOne({
         where: {
-            uuid: listId
+            uuid: listId.trim()
         },
         include: ProductModel
     });
@@ -59,7 +69,8 @@ module.exports.getList = async (req, res) => {
             productId: product.id,
             name: product.name,
             description: product.description,
-            stock: product.dataValues.PantryListProduct.stock
+            stock: product.dataValues.PantryListProduct.stock,
+            needed: product.dataValues.PantryListProduct.needed
         });
     });
 
@@ -174,110 +185,29 @@ module.exports.consumeProducts = async (req, res) => {
 module.exports.updatePantry = async (req, res) => {
     console.log("******************");
     console.log("Request for pantry list update.");
+    console.log(req.body);
     console.log("******************");
 
     const { listId } = req.params;
-    const { updates } = req.body;
+    const { productId, needed, shops } = req.body;
 
-    const foundPantryList = await PantryListModel.findOne({
-        where: {
-            uuid: listId
-        }
-    });
+    const splittedShops = shops.split(",");
 
-    updates.forEach(async (shopList) => {
-        const { shopListId, products } = shopList;
-        const foundShoppingList = await ShoppingListModel.findOne({
-            where: {
-                uuid: shopListId
-            }
-        });
-
-        const foundMatching = await PantryToShoppingModel.findAll({
-            where: {
-                ShoppingListId: foundShoppingList.id,
-                PantryListId: foundPantryList.id,
-            }
-        });
-
-        if (!foundMatching.length) {
-            //list is empty
-            //insert stuff
-            products.forEach(async (product) => {
-
-                const foundProduct = await ProductModel.findOne({
-                    where: {
-                        name: product.name
-                    }
-                });
-
-                await PantryToShoppingModel.create({
-                    productId: foundProduct.id,
-                    ShoppingListId: foundShoppingList.id,
-                    PantryListId: foundPantryList.id,
-                });
-
-                await ShoppingListProductModel.create({
-                    needed: product.needed,
-                    ShoppingListId: foundShoppingList.id,
-                    ProductId: foundProduct.id,
-                });
-
-            });
-
-        } else {
-            //list has stuff in there
-            const foundSL = await ShoppingListProductModel.findAll({
+    splittedShops.forEach(async (shop) => {
+        //find shopping list with that uuid
+        if (shop) {
+            const foundShoppingList = await ShoppingListModel.findOne({
                 where: {
-                    ShoppingListId: foundShoppingList.id
+                    uuid: shop.trim()
                 }
             });
 
-            foundSL.forEach(async (el) => {
-                await ShoppingListProductModel.destroy({
-                    where: {
-                        ShoppingListId: el.ShoppingListId,
-                        ProductId: el.ProductId,
-                    }
-                });
-            });
-
-            const foundPTS = await PantryToShoppingModel.findAll({
-                ShoppingListId: foundShoppingList.id,
-                PantryListId: foundPantryList.id,
-            });
-
-            foundPTS.forEach(async (el) => {
-                await PantryToShoppingModel.destroy({
-                    where: {
-                        ShoppingListId: el.ShoppingListId,
-                        PantryListId: el.PantryListId,
-                    }
-                });
-            });
-
-            products.forEach(async (product) => {
-
-                const foundProduct = await ProductModel.findOne({
-                    where: {
-                        name: product.name
-                    }
-                });
-
-                await PantryToShoppingModel.create({
-                    productId: foundProduct.id,
-                    ShoppingListId: foundShoppingList.id,
-                    PantryListId: foundPantryList.id,
-                });
-
-                await ShoppingListProductModel.create({
-                    needed: product.needed,
-                    ShoppingListId: foundShoppingList.id,
-                    ProductId: foundProduct.id,
-                });
-
-            });
-
+            //save pair in database
+            await ShoppingListProductModel.create({
+                needed: Number(needed.trim()),
+                ShoppingListId: Number(foundShoppingList.id),
+                ProductId: Number(productId.trim())
+            })
         }
 
     });
@@ -289,13 +219,15 @@ module.exports.updatePantry = async (req, res) => {
 module.exports.addProductToPantry = async (req, res) => {
     console.log("******************");
     console.log("Request for adding product to pantry list.");
+    console.log(req.body);
     console.log("******************");
 
     const { listId } = req.params;
+    console.log("Lista: ", listId);
 
     const foundList = await PantryListModel.findOne({
         where: {
-            uuid: listId
+            uuid: listId.trim()
         }
     });
 

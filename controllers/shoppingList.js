@@ -32,13 +32,13 @@ const convert = require("xml-js");
 module.exports.createList = async (req, res) => {
     console.log("******************");
     console.log("Request for shopping list creation");
+    console.log(req.body);
     console.log("******************");
 
     const { listName, address } = req.body;
     //result in XML
     const conversion = await geocoder.geocode({
-        address,
-        country: "Portugal"
+        address
     });
     var conversionToJson = JSON.parse(convert.xml2json(conversion, { compact: false, spaces: 4 }));
 
@@ -51,8 +51,7 @@ module.exports.createList = async (req, res) => {
         {
             where: {
                 name: listName,
-                location: point,
-                address
+                address: address
             }
         }
     );
@@ -77,7 +76,7 @@ module.exports.createList = async (req, res) => {
     });
 
     res.status(200).send(JSON.stringify({
-        listUuid
+        listId: listUuid
     }));
 };
 

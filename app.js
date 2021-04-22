@@ -114,7 +114,6 @@ ImageModel.belongsTo(ProductModel, {
 
 //update every model on the database
 sequelize.sync({
-    force: true,
     logging: false
 });
 

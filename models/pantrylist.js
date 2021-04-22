@@ -17,5 +17,8 @@ module.exports = sequelize.define("PantryList", {
         type: Sequelize.STRING(7),
         allowNull: false,
         unique: true,
+    },
+    address: {
+        type: Sequelize.STRING(250)
     }
 });
