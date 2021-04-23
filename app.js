@@ -17,7 +17,7 @@ const ProductModel = require("./models/product");
 const ShoppingListProducts = require("./models/shoppinglistproduct");
 const PantryToShopping = require("./models/pantrytoshopping");
 const PantryListProducts = require("./models/pantrylistproduct");
-const StoreProducts = require("./models/storeproducts");
+const StoreProducts = require("./models/storeproduct");
 const ImageModel = require("./models/images");
 
 //Relationship associations
