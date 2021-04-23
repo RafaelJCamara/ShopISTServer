@@ -4,6 +4,7 @@ const userRouter = require("./routes/users");
 const productRouter = require("./routes/products");
 const listRouter = require("./routes/lists");
 const storeRouter = require("./routes/stores");
+const cartRouter = require("./routes/cart");
 const mysql = require("mysql");
 const sequelize = require("./database/connection");
 const { DataTypes } = require("sequelize");
@@ -135,6 +136,9 @@ app.use("/list", listRouter);
 
 //store routes
 app.use("/store", storeRouter);
+
+//cart routes
+app.use("/cart", cartRouter);
 
 
 app.listen("3000", () => {
