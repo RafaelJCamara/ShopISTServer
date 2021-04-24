@@ -9,4 +9,7 @@ const cartController = require("../controllers/cart");
 //get a cart by the shopping list's code
 router.get("/:shoppingId", cartController.getCart);
 
+//checkout a cart
+router.post("/:shoppingId", cartController.checkoutCart);
+
 module.exports = router;

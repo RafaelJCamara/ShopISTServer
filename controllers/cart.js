@@ -39,17 +39,9 @@ module.exports.getCart = async(req, res) => {
 
     const prices = await StoreProduct.findAll({
         where: {
-            [Op.and]: [
-                {
-                    productId: {
-                        [Op.in]: foundList.Products.map((el) => el.id)
-                    }
-                },
-                {
-                    storeId: foundList.id
-                }
-            ]
-            
+            productId: {
+                [Op.in]: foundList.Products.map((el) => el.id)
+            }            
         }
     });
 
@@ -61,15 +53,34 @@ module.exports.getCart = async(req, res) => {
     };
 
     foundList.dataValues.Products.forEach(el => {
-        cartInfo.products.push({
-            productId: el.id,
-            name: el.name,
-            description: el.description,
-            inCart: el.ShoppingListProduct.inCart
-        });
-        cartInfo.total += prices.find((e) => e.ProductId == el.id).price * el.ShoppingListProduct.inCart;
+        let p = prices.find((e) => e.ProductId == el.id);
+        if(p) {
+            cartInfo.products.push({
+                productId: el.id,
+                name: el.name,
+                description: el.description,
+                price: p.price,
+                quantity: el.ShoppingListProduct.inCart
+            });
+            cartInfo.total += p.price * el.ShoppingListProduct.inCart;
+        }
     });
 
     res.status(200).send(JSON.stringify(cartInfo));
+
+};
+
+module.exports.checkoutCart = async(req, res) => {
+
+    const { shoppingId } = req.params;
+
+    await ShoppingListProduct.update({ needed: sequelize.literal('GREATEST(0, needed - inCart)'), inCart: 0 }, {
+        where: {
+            shoppingListId: shoppingId
+        },
+        individualHooks: true
+    });
+
+    res.status(200).send();
 
 };
