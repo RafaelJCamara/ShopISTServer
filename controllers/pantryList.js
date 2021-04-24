@@ -107,70 +107,67 @@ module.exports.consumeProducts = async (req, res) => {
     console.log(req.body);
     console.log("************");
 
-    const productsToConsume = req.body.products;
+    const { name, quantity } = req.body;
     const { listId } = req.params;
 
-    productsToConsume.forEach(async (productConsumed) => {
-        try {
-            //search product in the database
-            const foundProduct = await ProductModel.findOne({
-                where: {
-                    name: productConsumed.name
-                }
-            });
+    try {
+        //search product in the database
+        const foundProduct = await ProductModel.findOne({
+            where: {
+                name: name.trim()
+            }
+        });
 
-            const foundList = await PantryListModel.findOne({
-                where: {
-                    uuid: listId
-                }
-            });
+        const foundList = await PantryListModel.findOne({
+            where: {
+                uuid: listId.trim()
+            }
+        });
 
-            //make the update
-            const currentProductState = await PantryListProductModel.findOne({
+        //make the update
+        const currentProductState = await PantryListProductModel.findOne({
+            where: {
+                PantryListId: foundList.id,
+                ProductId: foundProduct.id,
+            }
+        });
+
+        await PantryListProductModel.update(
+            {
+                stock: Number(currentProductState.stock) - Number(quantity.trim()),
+                needed: Number(currentProductState.needed) + Number(quantity.trim())
+            },
+            {
                 where: {
                     PantryListId: foundList.id,
                     ProductId: foundProduct.id,
                 }
-            });
+            }
+        );
 
-            await PantryListProductModel.update(
-                {
-                    stock: Number(currentProductState.stock) - Number(productConsumed.quantity),
-                    needed: Number(currentProductState.needed) + Number(productConsumed.quantity)
-                },
+        const foundMatches = await PantryToShoppingModel.findAll({
+            where: {
+                PantryListId: foundList.id,
+                productId: foundProduct.id,
+            }
+        });
+
+        foundMatches.forEach(async (el) => {
+            await ShoppingListProductModel.update({
+                needed: Number(currentProductState.needed) + Number(quantity.trim())
+            },
                 {
                     where: {
-                        PantryListId: foundList.id,
+                        ShoppingListId: el.ShoppingListId,
                         ProductId: foundProduct.id,
                     }
-                }
-            );
+                });
+        });
 
-            const foundMatches = await PantryToShoppingModel.findAll({
-                where: {
-                    PantryListId: foundList.id,
-                    productId: foundProduct.id,
-                }
-            });
-
-            foundMatches.forEach(async (el) => {
-                await ShoppingListProductModel.update({
-                    needed: Number(currentProductState.needed) + Number(productConsumed.quantity)
-                },
-                    {
-                        where: {
-                            ShoppingListId: el.ShoppingListId,
-                            ProductId: foundProduct.id,
-                        }
-                    });
-            });
-
-        } catch (error) {
-            console.log("There was an error.");
-            console.log("Error: ", error);
-        }
-
-    });
+    } catch (error) {
+        console.log("There was an error.");
+        console.log("Error: ", error);
+    }
 
     res.status(200).send();
 };

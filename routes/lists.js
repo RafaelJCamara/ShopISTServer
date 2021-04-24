@@ -44,4 +44,7 @@ router.post("/shopping", shoppingListController.createList);
 //get a pantry list by it's code
 router.get("/shopping/:listId", shoppingListController.getList);
 
+//delete a specific shopping list
+router.delete("/shopping/:listId", shoppingListController.deleteList);
+
 module.exports = router;
