@@ -107,14 +107,14 @@ module.exports.consumeProducts = async (req, res) => {
     console.log(req.body);
     console.log("************");
 
-    const { name, quantity } = req.body;
+    const { productId, quantity } = req.body;
     const { listId } = req.params;
 
     try {
         //search product in the database
         const foundProduct = await ProductModel.findOne({
             where: {
-                name: name.trim()
+                id: productId.trim()
             }
         });
 
@@ -145,10 +145,9 @@ module.exports.consumeProducts = async (req, res) => {
             }
         );
 
-        const foundMatches = await PantryToShoppingModel.findAll({
+        const foundMatches = await ShoppingListProductModel.findAll({
             where: {
-                PantryListId: foundList.id,
-                productId: foundProduct.id,
+                ProductId: productId.trim(),
             }
         });
 
@@ -158,8 +157,7 @@ module.exports.consumeProducts = async (req, res) => {
             },
                 {
                     where: {
-                        ShoppingListId: el.ShoppingListId,
-                        ProductId: foundProduct.id,
+                        ProductId: productId.trim(),
                     }
                 });
         });
