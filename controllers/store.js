@@ -1,5 +1,5 @@
 const Store = require("../models/store");
-const StoreProductModel = require("../models/storeproducts");
+const StoreProductModel = require("../models/storeproduct");
 const ShoppingListModel = require("../models/shoppinglist");
 
 //creates a new store
