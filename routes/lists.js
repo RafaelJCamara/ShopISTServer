@@ -41,7 +41,7 @@ router.post("/pantry/:listId/update", pantryListController.updatePantry);
 //create a shopping list
 router.post("/shopping", shoppingListController.createList);
 
-//get a pantry list by it's code
+//get a shopping list by it's code
 router.get("/shopping/:listId", shoppingListController.getList);
 
 //delete a specific shopping list

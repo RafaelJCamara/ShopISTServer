@@ -6,4 +6,9 @@ module.exports = sequelize.define('ShoppingListProduct', {
         type: DataTypes.INTEGER,
         allowNull: false
     },
+    inCart: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        default: 0
+    }
 }, { timestamps: false });
