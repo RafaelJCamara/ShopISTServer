@@ -1,7 +1,7 @@
 const Product = require("../models/product");
 const { Op } = require("sequelize");
 const ImageModel = require("../models/images");
-const StoreProductModel = require("../models/storeproducts");
+const StoreProductModel = require("../models/storeproduct");
 const ShoppingListModel = require("../models/shoppinglist");
 
 //when someone wants to create a product
