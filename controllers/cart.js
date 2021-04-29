@@ -6,6 +6,9 @@ const Store = require("../models/store");
 const ShoppingListModel = require("../models/shoppinglist");
 const ShoppingListProduct = require("../models/shoppinglistproduct");
 const StoreProduct = require("../models/storeproduct");
+const sequelize = require("../database/connection");
+const PantryListProduct = require("../models/pantrylistproduct");
+const PantryToShopping = require("../models/pantrytoshopping");
 
 module.exports.getCart = async(req, res) => {
 
@@ -73,6 +76,37 @@ module.exports.getCart = async(req, res) => {
 module.exports.checkoutCart = async(req, res) => {
 
     const { shoppingId } = req.params;
+
+    const shoppingListModel = await ShoppingListModel.findOne({
+        where: {
+            id: shoppingId
+        },
+        include: [
+            {
+                model: Product,
+                through: ShoppingListProduct
+            }
+        ]
+    });
+
+    const pantryList = await PantryToShopping.findOne({
+        where: {
+            shoppingListId: shoppingId
+        }
+    });
+
+    shoppingListModel.dataValues.Products.forEach(el => {
+        PantryListProduct.update({
+            needed: sequelize.literal('GREATEST(0, needed - ' + el.ShoppingListProduct.inCart + ')'),
+            stock: sequelize.literal('stock + ' + el.ShoppingListProduct.inCart)
+        }, {
+            where: {
+                productId: el.id,
+                pantryListId: pantryList.dataValues.PantryListId
+            },
+            individualHooks: true
+        });
+    });
 
     await ShoppingListProduct.update({ needed: sequelize.literal('GREATEST(0, needed - inCart)'), inCart: 0 }, {
         where: {
