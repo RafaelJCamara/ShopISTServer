@@ -17,4 +17,7 @@ router.post("/:productId/addPhoto", productController.addPhoto);
 //add price to a product (when in a store)
 router.post("/:productId/addPrice", productController.addProductPrice);
 
+//remove product (when in pantry)
+router.delete("/:productId/remove", productController.deleteProduct)
+
 module.exports = router;

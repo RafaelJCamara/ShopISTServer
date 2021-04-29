@@ -201,7 +201,8 @@ module.exports.updatePantry = async (req, res) => {
             await ShoppingListProductModel.create({
                 needed: Number(needed.trim()),
                 ShoppingListId: Number(foundShoppingList.id),
-                ProductId: Number(productId.trim())
+                ProductId: Number(productId.trim()), 
+                inCart: 0
             })
         }
 

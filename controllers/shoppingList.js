@@ -121,3 +121,26 @@ module.exports.deleteList = async (req, res) => {
     console.log("Someone wants to delete a list.");
     console.log("************");
 };
+
+
+//Get all shoppinglists in server (temporary)
+module.exports.getAllLists = async (req, res) => {
+    console.log("************");
+    console.log("Someone wants to get all shopping lists.");
+    console.log(req.params);
+    console.log("************");
+
+    const shoplistsInfo = [];
+    const shoplists = await ShoppingListModel.findAll();
+
+    shoplists.forEach(el =>{
+        console.log(el.dataValues.name);
+        shoplistsInfo.push({
+            name : el.dataValues.name,
+            uuid : el.dataValues.uuid,
+            products: []
+        })
+    })
+    console.log("sending" + shoplistsInfo);
+    res.status(200).send(JSON.stringify(shoplistsInfo));
+};

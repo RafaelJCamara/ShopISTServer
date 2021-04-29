@@ -67,6 +67,24 @@ module.exports.getProduct = async (req, res) => {
 };
 
 module.exports.deleteProduct = async (req, res) => {
+    const { listId } = req.params;
+    console.log("************");
+    console.log("Someone wants to delete a list.");
+    console.log("This was the list ID", listId);
+    console.log("************");
+
+    try {
+        //get the corresponding pantry list
+        const foundProduct = await Product.findOne({
+            where: {
+                barcode: barcode,
+            }
+        });
+
+        await foundProduct.destroy();
+    } catch (error) {
+
+    }
 
 };
 

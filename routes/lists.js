@@ -44,6 +44,9 @@ router.post("/shopping", shoppingListController.createList);
 //get a shopping list by it's code
 router.get("/shopping/:listId", shoppingListController.getList);
 
+//get a shopping list by it's code
+router.get("/shopping", shoppingListController.getAllLists);
+
 //delete a specific shopping list
 router.delete("/shopping/:listId", shoppingListController.deleteList);
 
