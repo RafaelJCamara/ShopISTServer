@@ -3,6 +3,7 @@ const { Op } = require("sequelize");
 const ImageModel = require("../models/images");
 const StoreProductModel = require("../models/storeproduct");
 const ShoppingListModel = require("../models/shoppinglist");
+const ProductModel = require("../models/product");
 
 //when someone wants to create a product
 module.exports.createProduct = async (req, res) => {
@@ -65,6 +66,35 @@ module.exports.getProduct = async (req, res) => {
     console.log(req.body);
     console.log("**********************************");
 };
+
+
+module.exports.getProductUrl = async (req, res) => {
+    console.log("**********************************");
+    console.log("There was a request to get a product url.");
+    console.log(req.body);
+    console.log("**********************************");
+    const { productName } = req.params;
+
+    const foundProduct = await ProductModel.findOne({
+        where: {
+            name: productName.trim()
+        }
+    });
+
+
+    const foundProductImage = await ImageModel.findOne({
+        where: {
+            productId: foundProduct.id
+        }
+    });
+
+    const sendInfo = {
+        imageURL: foundProductImage.url
+    }
+
+    res.status(200).send(JSON.stringify(sendInfo));
+};
+
 
 module.exports.deleteProduct = async (req, res) => {
 
