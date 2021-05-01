@@ -69,28 +69,10 @@ module.exports.getProduct = async (req, res) => {
 module.exports.deleteProduct = async (req, res) => {
     const { listId } = req.params;
     console.log("************");
-    console.log("Someone wants to delete a list.");
-    console.log("This was the list ID", listId);
+    console.log("Someone wants to delete a product.");
+    console.log("This was the product ID", listId);
     console.log("************");
-
-    try {
-        //get the corresponding pantry list
-        const foundProduct = await Product.findOne({
-            where: {
-                barcode: barcode,
-            }
-        });
-
-        await foundProduct.destroy();
-    } catch (error) {
-
-    }
-
-};
-
-module.exports.updateProduct = async (req, res) => {
-
-};
+    };
 
 //when someone is inserting a product (suggest possible names)
 module.exports.autocompleteProductName = async (req, res) => {
