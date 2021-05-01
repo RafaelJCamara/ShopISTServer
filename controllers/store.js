@@ -1,6 +1,7 @@
 const Store = require("../models/store");
 const StoreProductModel = require("../models/storeproduct");
 const ShoppingListModel = require("../models/shoppinglist");
+const ShoppingListProductModel = require("../models/shoppinglistproduct");
 
 //creates a new store
 module.exports.createStore = async (req, res) => {
@@ -26,6 +27,15 @@ module.exports.updateProductAtStore = async (req, res) => {
         price: Number(productPrice),
         StoreId: Number(foundShoppingList.StoreId),
         ProductId: Number(productId)
+    });
+
+    await ShoppingListProductModel.update({
+        inCart: Number(productQuantity)
+    }, {
+        where: {
+            ShoppingListId: Number(foundShoppingList.StoreId),
+            ProductId: Number(productId)
+        }
     });
 
     res.status(200).send();

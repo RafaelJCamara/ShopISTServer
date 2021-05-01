@@ -10,6 +10,7 @@ const uid = new ShortUniqueId(options);
 const PantryToShoppingModel = require("../models/pantrytoshopping");
 const ShoppingListModel = require("../models/shoppinglist");
 const ShoppingListProductModel = require("../models/shoppinglistproduct");
+const ImageModel = require("../models/images");
 
 const NodeGeocoder = require('node-geocoder');
 const optionsGeocoder = {
@@ -226,7 +227,7 @@ module.exports.addProductToPantry = async (req, res) => {
         }
     });
 
-    const { name, description, barcode, stock, needed } = req.body;
+    const { name, description, barcode, stock, needed, imageUrl } = req.body;
 
     try {
         //add the product to the database
@@ -240,6 +241,12 @@ module.exports.addProductToPantry = async (req, res) => {
             needed: Number(needed),
             PantryListId: foundList.id,
             ProductId: newProduct.id,
+        });
+
+        //save cloud url information
+        await ImageModel.create({
+            url: imageUrl,
+            productId: newProduct.id
         });
 
     } catch (e) {
