@@ -20,6 +20,7 @@ const PantryListProducts = require("./models/pantrylistproduct");
 const StoreProducts = require("./models/storeproduct");
 const ImageModel = require("./models/images");
 const WaitTimeModel = require("./models/waittime");
+const WaitingTimeInfoModel = require("./models/waitingtimeinfo");
 
 //Relationship associations
 /**
@@ -126,6 +127,17 @@ WaitTimeModel.belongsTo(StoreModel, {
     as: "store"
 });
 
+/**
+ * 1-M relationship between Store and WaitingTimeInfo
+ */
+StoreModel.hasMany(WaitingTimeInfoModel, {
+    foreignKey: "storeId",
+    as: "waitinginfo"
+});
+WaitingTimeInfoModel.belongsTo(StoreModel, {
+    foreignKey: "storeId",
+    as: "store"
+});
 
 
 //update every model on the database
