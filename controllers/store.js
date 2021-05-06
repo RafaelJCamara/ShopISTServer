@@ -81,17 +81,13 @@ module.exports.currentWaitingTime = async (req, res) => {
         }
     });
 
-    //
     let highestNumberOfItems = -1;
-    let highestCheckoutNumberItems = -1;
-
+    let cummulativeItemsInLine = 0;
 
     foundWaitingList.forEach((element) => {
-        if (Number(element.dataValues.numberCartItems) > highestNumberOfItems && element.dataValues.timeLeaving == null) {
-            highestNumberOfItems = Number(element.dataValues.numberCartItems);
-        }
-        if (Number(element.dataValues.numberCartItems) > highestCheckoutNumberItems && element.dataValues.timeLeaving != null) {
-            highestCheckoutNumberItems = Number(element.dataValues.numberCartItems)
+        if (element.dataValues.timeLeaving == null) {
+            cummulativeItemsInLine += Number(element.dataValues.numberCartItems);
+            highestNumberOfItems = 0;
         }
     });
 
@@ -117,19 +113,8 @@ module.exports.currentWaitingTime = async (req, res) => {
             yAxis.push(element.dataValues.y);
         });
 
-        //substact the highest cart already checkedout
-        highestNumberOfItems = highestNumberOfItems - highestCheckoutNumberItems;
-
-
-        // console.log("$$$$$$$$$$$$");
-        // console.log(xAxis);
-        // console.log(yAxis);
-        // console.log(highestNumberOfItems);
-        // console.log(highestCheckoutNumberItems);
-        // console.log("$$$$$$$$$$$$");
-
         const regression = new SimpleLinearRegression(xAxis, yAxis);
-        predictedWaitingTime = regression.predict(highestNumberOfItems);
+        predictedWaitingTime = regression.predict(cummulativeItemsInLine);
     }
 
     const sendInfo = {
