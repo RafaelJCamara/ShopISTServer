@@ -15,5 +15,6 @@ module.exports = sequelize.define("WaitTime", {
     },
     timeArriving: Sequelize.DATE,
     timeLeaving: Sequelize.DATE,
-    numberCartItems: Sequelize.INTEGER(3)
+    numberCartItems: Sequelize.INTEGER(5),
+    numberCartItemsInLine: Sequelize.INTEGER(5),
 });

@@ -77,7 +77,7 @@ module.exports.currentWaitingTime = async (req, res) => {
     const { storeId } = req.params;
     const foundWaitingList = await WaitTimeModel.findAll({
         where: {
-            storeId
+            storeId: storeId.trim()
         }
     });
 
@@ -105,7 +105,7 @@ module.exports.currentWaitingTime = async (req, res) => {
 
         const linearRegressionInfoPerStore = await WaitingTimeInfoModel.findAll({
             where: {
-                storeId
+                storeId: storeId.trim()
             }
         });
 
@@ -119,6 +119,14 @@ module.exports.currentWaitingTime = async (req, res) => {
 
         //substact the highest cart already checkedout
         highestNumberOfItems = highestNumberOfItems - highestCheckoutNumberItems;
+
+
+        // console.log("$$$$$$$$$$$$");
+        // console.log(xAxis);
+        // console.log(yAxis);
+        // console.log(highestNumberOfItems);
+        // console.log(highestCheckoutNumberItems);
+        // console.log("$$$$$$$$$$$$");
 
         const regression = new SimpleLinearRegression(xAxis, yAxis);
         predictedWaitingTime = regression.predict(highestNumberOfItems);
@@ -147,22 +155,20 @@ module.exports.initCheckoutProcess = async (req, res) => {
     const checkoutUuid = uid();
 
     //get registered checkouts for that store
-    const allCheckoutRegisterd = await WaitTimeModel.findAll({
+    const allCheckoutRegistered = await WaitTimeModel.findAll({
         where: {
-            storeId
+            storeId: storeId.trim()
         }
     });
 
     let totalNumberOfProducts = Number(numberItemsCart);
-    let maxNumber = 0;
+    let productsInLine = 0;
 
-    allCheckoutRegisterd.forEach(el => {
-        if (Number(el.dataValues.numberCartItems) > maxNumber && el.dataValues.timeLeaving == null) {
-            maxNumber = Number(el.dataValues.numberCartItems);
-        }
+    allCheckoutRegistered.forEach(el => {
+        productsInLine += el.dataValues.numberCartItems;
     });
 
-    totalNumberOfProducts += maxNumber;
+    totalNumberOfProducts += productsInLine;
 
     console.log("#############");
     console.log(`Total number of products in line (including ours): ${totalNumberOfProducts}`);
@@ -172,8 +178,9 @@ module.exports.initCheckoutProcess = async (req, res) => {
     await WaitTimeModel.create({
         uuid: checkoutUuid,
         timeArriving: currentDate,
-        numberCartItems: totalNumberOfProducts,
-        storeId
+        numberCartItems: numberItemsCart,
+        numberCartItemsInLine: totalNumberOfProducts,
+        storeId: storeId.trim()
     });
 
     const sendInfo = {
@@ -209,22 +216,14 @@ module.exports.endCheckoutProcess = async (req, res) => {
     await WaitingTimeInfoModel.create({
         x: Number(foundWaitingTime.numberCartItems),
         y: Number(currentTimeMinutes) - Number(arrivalTimeMinutes),
-        storeId
+        storeId: storeId.trim()
     });
 
-    await WaitTimeModel.update(
-        {
-            timeLeaving: currentDate
-        },
-
-        {
-            where: {
-                storeId,
-                uuid: checkoutId
-            }
+    await WaitTimeModel.destroy({
+        where: {
+            uuid: checkoutId
         }
-
-    );
+    });
 
     res.status(200).send();
 }
