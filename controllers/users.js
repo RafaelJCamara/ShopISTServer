@@ -54,7 +54,8 @@ module.exports.login = async (req, res) => {
         console.log("Matching passwords");
         const sendUser = {
             name: foundUser.username,
-            email: foundUser.email
+            email: foundUser.email,
+            userId: foundUser.id
         }
         return res.status(200).send(JSON.stringify(sendUser));
     } else {

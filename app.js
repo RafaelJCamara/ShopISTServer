@@ -21,13 +21,14 @@ const StoreProducts = require("./models/storeproduct");
 const ImageModel = require("./models/images");
 const WaitTimeModel = require("./models/waittime");
 const WaitingTimeInfoModel = require("./models/waitingtimeinfo");
+const UserPantryListModel = require("./models/userpantrylist");
 
 //Relationship associations
 /**
  * M-M relationship between User and PantryList
  */
-UserModel.belongsToMany(PantryListModel, { through: 'UserPantryList' });
-PantryListModel.belongsToMany(UserModel, { through: 'UserPantryList' });
+UserModel.belongsToMany(PantryListModel, { through: UserPantryListModel });
+PantryListModel.belongsToMany(UserModel, { through: UserPantryListModel });
 
 /**
  * M-M relationship between User and ShoppingList

@@ -34,6 +34,10 @@ router.post("/pantry/:listId/addProduct", pantryListController.addProductToPantr
 //update pantry list
 router.post("/pantry/:listId/update", pantryListController.updatePantry);
 
+//get all pantry lists for a specific user
+router.get("/pantry/userLists/:userId", pantryListController.getAllUserPantryLists);
+
+
 /*
     Shopping list routes
 */

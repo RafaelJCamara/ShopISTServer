@@ -11,6 +11,8 @@ const PantryToShoppingModel = require("../models/pantrytoshopping");
 const ShoppingListModel = require("../models/shoppinglist");
 const ShoppingListProductModel = require("../models/shoppinglistproduct");
 const ImageModel = require("../models/images");
+const UserPantryListModel = require("../models/userpantrylist");
+const UserModel = require("../models/user");
 
 const NodeGeocoder = require('node-geocoder');
 const optionsGeocoder = {
@@ -27,7 +29,7 @@ module.exports.createList = async (req, res) => {
     console.log("Request for pantry list creation");
     console.log(req.body);
     console.log("******************");
-    const { name, address } = req.body;
+    const { name, address, userId } = req.body;
     const listUuid = uid();
 
     const newList = await PantryListModel.create({
@@ -35,6 +37,11 @@ module.exports.createList = async (req, res) => {
         uuid: listUuid,
         address
     });
+
+    await UserPantryListModel.create({
+        UserId: userId,
+        PantryListId: newList.id,
+    })
 
     const info = {
         listId: listUuid
@@ -254,4 +261,34 @@ module.exports.addProductToPantry = async (req, res) => {
     }
 
     res.status(200).send();
+}
+
+
+//get all pantry lists for a specific user
+module.exports.getAllUserPantryLists = async (req, res) => {
+    console.log("******************");
+    console.log("Request for all user pantry lists.");
+    console.log(req.body);
+    console.log("******************");
+
+    const { userId } = req.params;
+    console.log(`Searching user id: ${userId}`);
+
+    //get list
+    const foundList = await UserModel.findOne({
+        where: {
+            id: userId.trim()
+        },
+        include: PantryListModel
+    });
+
+    const sendList = {
+        userPantryLists: [],
+    };
+
+    foundList.PantryLists.forEach(pantryList => {
+        sendList.userPantryLists.push(`${pantryList.dataValues.name} -> ${pantryList.dataValues.uuid}`);
+    });
+
+    res.status(200).send(JSON.stringify(sendList));
 }
