@@ -142,7 +142,7 @@ module.exports.getAllUserShoppingLists = async (req, res) => {
     console.log(`Searching user id: ${userId}`);
 
     //get list
-    const foundList = await UserModel.findOne({
+    const foundUser = await UserModel.findOne({
         where: {
             id: userId.trim()
         },
@@ -153,9 +153,37 @@ module.exports.getAllUserShoppingLists = async (req, res) => {
         userList: [],
     };
 
-    foundList.ShoppingLists.forEach(shoppingList => {
+    foundUser.ShoppingLists.forEach(shoppingList => {
         sendList.userList.push(`${shoppingList.dataValues.name} -> ${shoppingList.dataValues.uuid}`);
     });
+
+    //seach for ACLs
+    const foundACLs = await ShoppingListAccessGrantModel.findAll({
+        where: {
+            email: foundUser.email
+        },
+        include:
+        {
+            all: true,
+            nested: true
+        }
+    });
+
+    // foundACLs.forEach(el => {
+    //     const pantryListId = el.pantryUserId.dataValues.PantryListId;
+    //     // console.log(el.pantryUserId.dataValues)
+
+    // });
+
+    for (let i = 0; i != foundACLs.length; i++) {
+        const shopListId = foundACLs[i].shopUserId.dataValues.ShoppingListId;
+        const foundSList = await ShoppingListModel.findOne({
+            where: {
+                id: shopListId
+            }
+        });
+        sendList.userList.push(`${foundSList.name} -> ${foundSList.uuid}`);
+    }
 
     res.status(200).send(JSON.stringify(sendList));
 }

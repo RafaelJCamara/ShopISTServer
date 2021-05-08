@@ -275,7 +275,7 @@ module.exports.getAllUserPantryLists = async (req, res) => {
     console.log(`Searching user id: ${userId}`);
 
     //get list
-    const foundList = await UserModel.findOne({
+    const foundUser = await UserModel.findOne({
         where: {
             id: userId.trim()
         },
@@ -286,10 +286,39 @@ module.exports.getAllUserPantryLists = async (req, res) => {
         userList: [],
     };
 
-    foundList.PantryLists.forEach(pantryList => {
+    foundUser.PantryLists.forEach(pantryList => {
         sendList.userList.push(`${pantryList.dataValues.name} -> ${pantryList.dataValues.uuid}`);
-        console.log(`${pantryList.dataValues.name} -> ${pantryList.dataValues.uuid}`)
+        // console.log(`${pantryList.dataValues.name} -> ${pantryList.dataValues.uuid}`)
     });
+
+    //seach for ACLs
+    const foundACLs = await PantryListAccessGrantModel.findAll({
+        where: {
+            email: foundUser.email
+        },
+        include:
+        {
+            all: true,
+            nested: true
+        }
+    });
+
+    // foundACLs.forEach(el => {
+    //     const pantryListId = el.pantryUserId.dataValues.PantryListId;
+    //     // console.log(el.pantryUserId.dataValues)
+
+    // });
+
+    for (let i = 0; i != foundACLs.length; i++) {
+        const pantryListId = foundACLs[i].pantryUserId.dataValues.PantryListId;
+        const foundPList = await PantryListModel.findOne({
+            where: {
+                id: pantryListId
+            }
+        });
+        sendList.userList.push(`${foundPList.name} -> ${foundPList.uuid}`);
+    }
+
 
     res.status(200).send(JSON.stringify(sendList));
 }
