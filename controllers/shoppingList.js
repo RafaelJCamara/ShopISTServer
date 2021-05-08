@@ -2,6 +2,9 @@ const ShoppingListModel = require("../models/shoppinglist");
 const ProductModel = require("../models/product");
 const ShoppingListProductModel = require("../models/shoppinglistproduct");
 const StoreModel = require("../models/store");
+const UserModel = require("../models/user");
+const UserShoppingListModel = require("../models/usershopping");
+
 /**
  * UUID settings
  */
@@ -35,7 +38,7 @@ module.exports.createList = async (req, res) => {
     console.log(req.body);
     console.log("******************");
 
-    const { listName, address } = req.body;
+    const { listName, address, userId } = req.body;
     //result in XML
     const conversion = await geocoder.geocode({
         address
@@ -73,6 +76,11 @@ module.exports.createList = async (req, res) => {
         address,
         uuid: listUuid,
         StoreId: newStore.id
+    });
+
+    await UserShoppingListModel.create({
+        UserId: userId,
+        ShoppingListId: newShoppingList.id
     });
 
     res.status(200).send(JSON.stringify({
@@ -121,3 +129,32 @@ module.exports.deleteList = async (req, res) => {
     console.log("Someone wants to delete a list.");
     console.log("************");
 };
+
+//get all shopping lists for a specific user
+module.exports.getAllUserShoppingLists = async (req, res) => {
+    console.log("******************");
+    console.log("Request for all user shopping lists.");
+    console.log(req.body);
+    console.log("******************");
+
+    const { userId } = req.params;
+    console.log(`Searching user id: ${userId}`);
+
+    //get list
+    const foundList = await UserModel.findOne({
+        where: {
+            id: userId.trim()
+        },
+        include: ShoppingListModel
+    });
+
+    const sendList = {
+        userList: [],
+    };
+
+    foundList.ShoppingLists.forEach(shoppingList => {
+        sendList.userList.push(`${shoppingList.dataValues.name} -> ${shoppingList.dataValues.uuid}`);
+    });
+
+    res.status(200).send(JSON.stringify(sendList));
+}

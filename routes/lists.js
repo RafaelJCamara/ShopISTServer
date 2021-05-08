@@ -51,4 +51,7 @@ router.get("/shopping/:listId", shoppingListController.getList);
 //delete a specific shopping list
 router.delete("/shopping/:listId", shoppingListController.deleteList);
 
+//get all shopping lists for a specific user
+router.get("/shopping/userLists/:userId", shoppingListController.getAllUserShoppingLists);
+
 module.exports = router;

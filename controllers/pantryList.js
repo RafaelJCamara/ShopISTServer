@@ -210,7 +210,7 @@ module.exports.updatePantry = async (req, res) => {
                 needed: Number(needed.trim()),
                 ShoppingListId: Number(foundShoppingList.id),
                 ProductId: Number(productId.trim())
-            })
+            });
         }
 
     });
@@ -283,11 +283,11 @@ module.exports.getAllUserPantryLists = async (req, res) => {
     });
 
     const sendList = {
-        userPantryLists: [],
+        userList: [],
     };
 
     foundList.PantryLists.forEach(pantryList => {
-        sendList.userPantryLists.push(`${pantryList.dataValues.name} -> ${pantryList.dataValues.uuid}`);
+        sendList.userList.push(`${pantryList.dataValues.name} -> ${pantryList.dataValues.uuid}`);
     });
 
     res.status(200).send(JSON.stringify(sendList));
