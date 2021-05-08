@@ -13,6 +13,7 @@ const ShoppingListProductModel = require("../models/shoppinglistproduct");
 const ImageModel = require("../models/images");
 const UserPantryListModel = require("../models/userpantrylist");
 const UserModel = require("../models/user");
+const PantryListAccessGrantModel = require("../models/pantryaccessgrant");
 
 const NodeGeocoder = require('node-geocoder');
 const optionsGeocoder = {
@@ -263,7 +264,6 @@ module.exports.addProductToPantry = async (req, res) => {
     res.status(200).send();
 }
 
-
 //get all pantry lists for a specific user
 module.exports.getAllUserPantryLists = async (req, res) => {
     console.log("******************");
@@ -288,7 +288,91 @@ module.exports.getAllUserPantryLists = async (req, res) => {
 
     foundList.PantryLists.forEach(pantryList => {
         sendList.userList.push(`${pantryList.dataValues.name} -> ${pantryList.dataValues.uuid}`);
+        console.log(`${pantryList.dataValues.name} -> ${pantryList.dataValues.uuid}`)
     });
 
     res.status(200).send(JSON.stringify(sendList));
+}
+
+//grant access to user for a specific pantry list
+module.exports.grantUserAccess = async (req, res) => {
+    console.log("******************");
+    console.log("Request to grant access to a specific pantry list.");
+    console.log(req.body);
+    console.log("******************");
+
+    const { listId } = req.params;
+    const { userEmail, ownerId } = req.body;
+
+    const foundList = await PantryListModel.findOne({
+        where: {
+            uuid: listId.trim()
+        }
+    });
+
+    const foundUser = await UserModel.findOne({
+        where: {
+            id: ownerId.trim()
+        }
+    });
+
+    console.log("####################");
+    console.log("User id: ", foundUser.id);
+    console.log("Pantry list id: ", foundList.id);
+    console.log("####################");
+
+    const foundMatch = await UserPantryListModel.findOne({
+        where: {
+            UserId: foundUser.id,
+            PantryListId: foundList.id
+        }
+    });
+
+    await PantryListAccessGrantModel.create({
+        UserPantryId: foundMatch.id,
+        email: userEmail
+    });
+
+
+    res.status(200).send();
+}
+
+//remove access to user for a specific pantry list
+module.exports.removeUserAccess = async (req, res) => {
+    console.log("******************");
+    console.log("Request to remove access to a specific pantry list.");
+    console.log(req.body);
+    console.log("******************");
+
+    const { listId } = req.params;
+    const { userEmail, ownerId } = req.body;
+
+    const foundList = await PantryListModel.findOne({
+        where: {
+            uuid: listId.trim()
+        }
+    });
+
+    const foundUser = await UserModel.findOne({
+        where: {
+            id: ownerId.trim()
+        }
+    });
+
+    const foundMatch = await UserPantryListModel.findOne({
+        where: {
+            UserId: foundUser.id,
+            PantryListId: foundList.id
+        }
+    });
+
+    await PantryListAccessGrantModel.destroy({
+        where: {
+            UserPantryId: foundMatch.id,
+            email: userEmail
+        }
+    });
+
+
+    res.status(200).send();
 }

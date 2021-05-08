@@ -23,6 +23,7 @@ const WaitTimeModel = require("./models/waittime");
 const WaitingTimeInfoModel = require("./models/waitingtimeinfo");
 const UserPantryListModel = require("./models/userpantrylist");
 const UserShoppingModel = require("./models/usershopping");
+const PantryListAccessGrant = require("./models/pantryaccessgrant");
 
 //Relationship associations
 /**
@@ -30,6 +31,19 @@ const UserShoppingModel = require("./models/usershopping");
  */
 UserModel.belongsToMany(PantryListModel, { through: UserPantryListModel });
 PantryListModel.belongsToMany(UserModel, { through: UserPantryListModel });
+
+/**
+ * 1-M relationship between User and PantryList (extra access)
+ */
+UserPantryListModel.hasMany(PantryListAccessGrant, {
+    as: "userpantrylist"
+});
+
+PantryListAccessGrant.belongsTo(UserPantryListModel, {
+    foreignKey: "id",
+    as: "pantryUserId"
+});
+
 
 /**
  * M-M relationship between User and ShoppingList
@@ -140,6 +154,7 @@ WaitingTimeInfoModel.belongsTo(StoreModel, {
     foreignKey: "storeId",
     as: "store"
 });
+
 
 
 //update every model on the database

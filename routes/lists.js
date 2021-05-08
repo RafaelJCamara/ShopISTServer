@@ -37,6 +37,11 @@ router.post("/pantry/:listId/update", pantryListController.updatePantry);
 //get all pantry lists for a specific user
 router.get("/pantry/userLists/:userId", pantryListController.getAllUserPantryLists);
 
+//grant access to user for a specific pantry list
+router.post("/pantry/:listId/grantaccess", pantryListController.grantUserAccess);
+
+//remove user access  for a specific pantry list
+router.post("/pantry/:listId/removeaccess", pantryListController.removeUserAccess);
 
 /*
     Shopping list routes
