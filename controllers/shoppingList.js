@@ -4,6 +4,7 @@ const ShoppingListProductModel = require("../models/shoppinglistproduct");
 const StoreModel = require("../models/store");
 const UserModel = require("../models/user");
 const UserShoppingListModel = require("../models/usershopping");
+const ShoppingListAccessGrantModel = require("../models/shoppingaccessgrant");
 
 /**
  * UUID settings
@@ -159,3 +160,85 @@ module.exports.getAllUserShoppingLists = async (req, res) => {
     res.status(200).send(JSON.stringify(sendList));
 }
 
+//grant access to user for a specific pantry list
+module.exports.grantUserAccess = async (req, res) => {
+    console.log("******************");
+    console.log("Request to grant access to a specific shopping list.");
+    console.log(req.body);
+    console.log("******************");
+
+    const { listId } = req.params;
+    const { userEmail, ownerId } = req.body;
+
+    const foundList = await ShoppingListModel.findOne({
+        where: {
+            uuid: listId.trim()
+        }
+    });
+
+    const foundUser = await UserModel.findOne({
+        where: {
+            id: ownerId.trim()
+        }
+    });
+
+    console.log("####################");
+    console.log("User id: ", foundUser.id);
+    console.log("Shopping list id: ", foundList.id);
+    console.log("####################");
+
+    const foundMatch = await UserShoppingListModel.findOne({
+        where: {
+            UserId: foundUser.id,
+            ShoppingListId: foundList.id
+        }
+    });
+
+    await ShoppingListAccessGrantModel.create({
+        UserShoppingId: foundMatch.id,
+        email: userEmail
+    });
+
+
+    res.status(200).send();
+}
+
+//remove access to user for a specific pantry list
+module.exports.removeUserAccess = async (req, res) => {
+    console.log("******************");
+    console.log("Request to remove access to a specific pantry list.");
+    console.log(req.body);
+    console.log("******************");
+
+    const { listId } = req.params;
+    const { userEmail, ownerId } = req.body;
+
+    const foundList = await PantryListModel.findOne({
+        where: {
+            uuid: listId.trim()
+        }
+    });
+
+    const foundUser = await UserModel.findOne({
+        where: {
+            id: ownerId.trim()
+        }
+    });
+
+    const foundMatch = await UserPantryListModel.findOne({
+        where: {
+            UserId: foundUser.id,
+            PantryListId: foundList.id
+        }
+    });
+
+    await PantryListAccessGrantModel.destroy({
+        where: {
+            UserPantryId: foundMatch.id,
+            email: userEmail
+        }
+    });
+
+
+    res.status(200).send();
+}

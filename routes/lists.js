@@ -59,4 +59,10 @@ router.delete("/shopping/:listId", shoppingListController.deleteList);
 //get all shopping lists for a specific user
 router.get("/shopping/userLists/:userId", shoppingListController.getAllUserShoppingLists);
 
+//grant access to user for a specific shopping list
+router.post("/shopping/:listId/grantaccess", shoppingListController.grantUserAccess);
+
+//remove user access  for a specific shopping list
+router.post("/shopping/:listId/removeaccess", shoppingListController.removeUserAccess);
+
 module.exports = router;
