@@ -5,26 +5,32 @@ const Product = require("../models/product");
 const Store = require("../models/store");
 const ShoppingListModel = require("../models/shoppinglist");
 const ShoppingListProduct = require("../models/shoppinglistproduct");
-const StoreProduct = require("../models/storeproduct");
+const StoreProductModel = require("../models/storeproduct");
 const sequelize = require("../database/connection");
 const PantryListProduct = require("../models/pantrylistproduct");
 const PantryToShopping = require("../models/pantrytoshopping");
+
 
 module.exports.getCart = async(req, res) => {
 
     const { shoppingId } = req.params;
 
+    console.log("#################################/n this is shoppingid from client:" + shoppingId.trim());
+
     const cart = await Cart.findOne({
         where: {
-            shoppingId: shoppingId
+            shoppingId: shoppingId.trim()
         },
     });
+    console.log("#################################/n this is shoppingid from card:" + cart.shoppingId);
 
     const foundList = await ShoppingListModel.findOne({
         where: {
-            id: shoppingId
+            uuid: shoppingId.trim()
         },
-        include: [
+        include: Product,
+        through: ShoppingListProduct
+        /*include: [
             {
                 model: Product,
                 through:
@@ -37,10 +43,15 @@ module.exports.getCart = async(req, res) => {
                         }
                     }
             }
-        ]
+        ]*/
     });
 
-    const prices = await StoreProduct.findAll({
+    foundList.dataValues.Products.forEach(el => {
+        console.log(el.name);
+    });
+
+
+    const prices = await StoreProductModel.findAll({
         where: {
             productId: {
                 [Op.in]: foundList.Products.map((el) => el.id)
@@ -118,3 +129,76 @@ module.exports.checkoutCart = async(req, res) => {
     res.status(200).send();
 
 };
+
+module.exports.addProductToCart = async(req, res) => {
+
+    console.log("************");
+    console.log("Someone added itens to cart.");
+    console.log(req.body);
+    console.log("************");
+
+    const { productId, quantity } = req.body;
+    const { shoppingId } = req.params;
+
+    try{
+
+        //search product in the database
+        const foundProduct = await Product.findOne({
+            where: {
+                id: productId.trim()
+            }
+        });
+        console.log("\n################################\nthis is my product:" + foundProduct.id);
+
+        
+        const listFound = await ShoppingListModel.findOne({
+            where: {
+                uuid: shoppingId.trim()
+            },
+
+            include: [
+                {
+                    model: Product,
+                    through: ShoppingListProduct
+                }
+            ]
+        });
+
+        listFound.dataValues.Products.forEach(el => {
+            console.log(el.name);
+            console.log(el.ShoppingListId);
+            console.log(el.inCart);
+        });
+
+        /*await ShoppingListProduct.forEach(el => {
+            console.log("product id:" + el.name + " ;product nedded:"+ el.needed + " ;product cart:"+ el.inCart );
+        });*/
+
+        const shopProductFound = await ShoppingListProduct.findOne({
+            where: {
+                ShoppingListId : listFound.id,
+                ProductId: foundProduct.id,
+            },    
+        });
+
+        console.log("\n################################\nthis is my shop list product:" + shopProductFound.ProductId +" "+ shopProductFound.ShoppingListId +" "+ shopProductFound.inCart + " " + shopProductFound.needed );
+        console.log("\n################################\nthis is my shop list:" + listFound.id);
+
+        await ShoppingListProduct.update(
+            {
+                inCart: Number(shopProductFound.inCart) + Number(quantity.trim()),
+                needed: Number(shopProductFound.needed) - Number(quantity.trim())
+            },
+            {
+                where: {
+                    ProductId: shopProductFound.ProductId,
+                }
+            }
+        );
+    } catch (error) {
+        console.log("There was an error.");
+        console.log("Error: ", error);
+    }
+    res.status(200).send();
+
+}

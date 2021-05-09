@@ -108,7 +108,7 @@ module.exports.getList = async (req, res) => {
             productId: el.id,
             name: el.name,
             description: el.description,
-            needed: el.ShoppingListProduct.needed
+            needed: el.ShoppingListProduct.needed, 
         });
     });
 

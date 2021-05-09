@@ -15,6 +15,8 @@ module.exports.updateProductAtStore = async (req, res) => {
 
     const { productQuantity, productPrice, shoppingListId, productId } = req.body;
 
+    console.log("quantity:" + productQuantity + "\nprice:"+ productPrice + "\nshoppingListId:" + shoppingListId + "\nproductID:" + productId);
+
     //get shopping list we were 
     const foundShoppingList = await ShoppingListModel.findOne({
         where: {
@@ -27,6 +29,7 @@ module.exports.updateProductAtStore = async (req, res) => {
         StoreId: Number(foundShoppingList.StoreId),
         ProductId: Number(productId)
     });
+
 
     res.status(200).send();
 }
