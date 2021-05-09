@@ -18,6 +18,9 @@ router.post("/:productId/addPhoto", productController.addPhoto);
 router.post("/:productId/addPrice", productController.addProductPrice);
 
 //remove product (when in pantry)
-router.delete("/:productId/remove", productController.deleteProduct)
+router.delete("/:productId/remove", productController.deleteProduct);
+
+//update product rate
+router.post("/:productId/rateProduct", productController.rateProduct);
 
 module.exports = router;

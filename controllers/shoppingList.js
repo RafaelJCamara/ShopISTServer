@@ -109,7 +109,10 @@ module.exports.getList = async (req, res) => {
             name: el.name,
             description: el.description,
             needed: el.ShoppingListProduct.needed, 
+            total_rating: el.total_rating,
+            nr_ratings: el.nr_ratings
         });
+        console.log(el.name +  " "+ el.id +  " " + "rating log: "+el.ShoppingListProduct.total_rating + " " + el.ShoppingListProduct.nr_ratings)
     });
 
     res.status(200).send(JSON.stringify(shoppingListInfo));

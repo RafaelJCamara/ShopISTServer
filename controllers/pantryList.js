@@ -70,7 +70,9 @@ module.exports.getList = async (req, res) => {
             name: product.name,
             description: product.description,
             stock: product.dataValues.PantryListProduct.stock,
-            needed: product.dataValues.PantryListProduct.needed
+            needed: product.dataValues.PantryListProduct.needed,
+            total_rating: product.total_rating,
+            nr_ratings: product.nr_ratings,
         });
     });
 
@@ -203,6 +205,7 @@ module.exports.updatePantry = async (req, res) => {
                 ShoppingListId: Number(foundShoppingList.id),
                 ProductId: Number(productId.trim()), 
                 inCart: 0
+                
             })
         }
 
@@ -232,7 +235,7 @@ module.exports.addProductToPantry = async (req, res) => {
     try {
         //add the product to the database
         const newProduct = await ProductModel.create({
-            name, description, barcode,
+            name, description, barcode, total_rating:0, nr_ratings:0
         });
 
         //add entry to represent that this product belongs to the specific pantry list

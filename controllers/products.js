@@ -144,3 +144,36 @@ module.exports.addProductPrice = async (req, res) => {
 
     res.status(200).send();
 };
+
+module.exports.rateProduct = async (req, res) => {
+    console.log("**********************************");
+    console.log("There was a request to rate a product.");
+    console.log("**********************************");
+    console.log(req.body);
+    console.log(req.params);
+    console.log("**********************************");
+
+    const { productId } = req.params;
+    const { productRating } = req.body;
+
+    //try{
+        const foundProduct = await Product.findOne({
+            where: {
+                id: productId.trim(),
+                //barcode: productBarcode
+            }
+        });
+
+        await Product.update(
+            {
+                total_rating: Number(foundProduct.total_rating) + Number(productRating.trim()),
+                nr_ratings:  Number(foundProduct.nr_ratings) + 1,
+            },
+            {
+                where: {
+                    id: foundProduct.id,
+                }
+            }
+        );
+        
+};
