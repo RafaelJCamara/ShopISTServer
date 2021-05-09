@@ -25,6 +25,7 @@ const UserPantryListModel = require("./models/userpantrylist");
 const UserShoppingModel = require("./models/usershopping");
 const PantryListAccessGrant = require("./models/pantryaccessgrant");
 const ShoppingListAccessGrant = require("./models/shoppingaccessgrant");
+const SuggestionModel = require("./models/suggestion");
 
 //Relationship associations
 /**
@@ -170,11 +171,18 @@ WaitingTimeInfoModel.belongsTo(StoreModel, {
     as: "store"
 });
 
+
+/**
+ * 
+ */
+
+SuggestionModel.belongsTo(ProductModel, { as: 'firstProduct', foreignKey: 'productone' });
+SuggestionModel.belongsTo(ProductModel, { as: 'secondProduct', foreignKey: 'producttwo' });
+
 //update every model on the database
 sequelize.sync({
     logging: false
 });
-
 
 //using json
 app.use(express.json());

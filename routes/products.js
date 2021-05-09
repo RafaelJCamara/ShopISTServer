@@ -20,4 +20,7 @@ router.post("/:productId/addPrice", productController.addProductPrice);
 //get product image
 router.get("/:productName/getUrl", productController.getProductUrl);
 
+//get product suggestion
+router.get("/:productName/suggestions", productController.getProductSugggestions);
+
 module.exports = router;
