@@ -26,6 +26,8 @@ const UserShoppingModel = require("./models/usershopping");
 const PantryListAccessGrant = require("./models/pantryaccessgrant");
 const ShoppingListAccessGrant = require("./models/shoppingaccessgrant");
 const SuggestionModel = require("./models/suggestion");
+const fs = require('fs');
+const https = require('https');
 
 //Relationship associations
 /**
@@ -205,7 +207,22 @@ app.use("/store", storeRouter);
 //cart routes
 app.use("/cart", cartRouter);
 
+const clientAuthMiddleware = () => (req, res, next) => {
+  if (!req.client.authorized) {
+    return res.status(401).send('Invalid client certificate authentication.');
+  }
+  return next();
+};
 
-app.listen("3000", () => {
-    console.log("Server started...");
-});
+app.use(clientAuthMiddleware());
+
+https.createServer(
+	{
+		requestCert: true,
+      		rejectUnauthorized: false,
+		ca: fs.readFileSync('ssl/ca_bundle.crt'),
+		cert: fs.readFileSync('ssl/certificate.crt'),
+		key: fs.readFileSync('ssl/private.key')
+	},
+	app
+).listen(8443);
