@@ -70,8 +70,19 @@ ShoppingListAccessGrant.belongsTo(UserShoppingModel, {
 /**
  * M-M relationship between PantryList and ShoppingList
  */
-ShoppingListModel.belongsToMany(PantryListModel, { through: PantryToShopping });
-PantryListModel.belongsToMany(ShoppingListModel, { through: PantryToShopping });
+ShoppingListModel.belongsToMany(PantryListModel, {
+    through: {
+        model: PantryToShopping,
+        unique: false,
+    }
+});
+
+PantryListModel.belongsToMany(ShoppingListModel, {
+    through: {
+        model: PantryToShopping,
+        unique: false,
+    }
+});
 
 /**
  * M-M relationship between PantryList and Products
@@ -175,7 +186,6 @@ WaitingTimeInfoModel.belongsTo(StoreModel, {
 /**
  * 
  */
-
 SuggestionModel.belongsTo(ProductModel, { as: 'firstProduct', foreignKey: 'productone' });
 SuggestionModel.belongsTo(ProductModel, { as: 'secondProduct', foreignKey: 'producttwo' });
 
