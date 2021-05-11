@@ -195,26 +195,43 @@ module.exports.updatePantry = async (req, res) => {
     const { listId } = req.params;
     const { productId, needed, shops } = req.body;
 
+    console.log("##################");
+    console.log(listId);
+    console.log(productId);
+    console.log(needed);
+    console.log(shops);
+    console.log("##################");
+
     const splittedShops = shops.split(",");
 
-    splittedShops.forEach(async (shop) => {
-        //find shopping list with that uuid
-        if (shop) {
+    const foundPantryList = await PantryListModel.findOne({
+        where: {
+            uuid: listId.trim()
+        }
+    });
+
+    for (let i = 0; i != splittedShops.length; i++) {
+        if (splittedShops[i]) {
             const foundShoppingList = await ShoppingListModel.findOne({
                 where: {
-                    uuid: shop.trim()
+                    uuid: splittedShops[i].trim()
                 }
             });
 
             //save pair in database
             await ShoppingListProductModel.create({
-                needed: Number(needed.trim()),
+                needed: Number(needed),
                 ShoppingListId: Number(foundShoppingList.id),
                 ProductId: Number(productId.trim())
             });
-        }
 
-    });
+            await PantryToShoppingModel.create({
+                productId: productId.trim(),
+                ShoppingListId: foundShoppingList.id,
+                PantryListId: foundPantryList.id
+            });
+        }
+    }
 
     res.status(200).send();
 };

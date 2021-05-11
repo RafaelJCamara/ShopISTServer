@@ -217,22 +217,26 @@ app.use("/store", storeRouter);
 //cart routes
 app.use("/cart", cartRouter);
 
-const clientAuthMiddleware = () => (req, res, next) => {
-  if (!req.client.authorized) {
-    return res.status(401).send('Invalid client certificate authentication.');
-  }
-  return next();
-};
+// const clientAuthMiddleware = () => (req, res, next) => {
+//   if (!req.client.authorized) {
+//     return res.status(401).send('Invalid client certificate authentication.');
+//   }
+//   return next();
+// };
 
-app.use(clientAuthMiddleware());
+// app.use(clientAuthMiddleware());
 
-https.createServer(
-	{
-		requestCert: true,
-      		rejectUnauthorized: false,
-		ca: fs.readFileSync('ssl/ca_bundle.crt'),
-		cert: fs.readFileSync('ssl/certificate.crt'),
-		key: fs.readFileSync('ssl/private.key')
-	},
-	app
-).listen(8443);
+// https.createServer(
+// 	{
+// 		requestCert: true,
+//       		rejectUnauthorized: false,
+// 		ca: fs.readFileSync('ssl/ca_bundle.crt'),
+// 		cert: fs.readFileSync('ssl/certificate.crt'),
+// 		key: fs.readFileSync('ssl/private.key')
+// 	},
+// 	app
+// ).listen(8443);
+
+app.listen("3000", () => {
+    console.log("Server started...");
+});
