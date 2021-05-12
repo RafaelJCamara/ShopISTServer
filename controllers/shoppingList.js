@@ -172,11 +172,11 @@ module.exports.getAllUserShoppingLists = async (req, res) => {
         }
     });
 
-    // foundACLs.forEach(el => {
-    //     const pantryListId = el.pantryUserId.dataValues.PantryListId;
-    //     // console.log(el.pantryUserId.dataValues)
+    foundACLs.forEach(el => {
+        const pantryListId = el.pantryUserId.dataValues.PantryListId;
+        // console.log(el.pantryUserId.dataValues)
 
-    // });
+    });
 
     for (let i = 0; i != foundACLs.length; i++) {
         const shopListId = foundACLs[i].shopUserId.dataValues.ShoppingListId;

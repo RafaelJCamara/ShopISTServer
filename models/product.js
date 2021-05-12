@@ -24,16 +24,17 @@ module.exports = sequelize.define("Product", {
     },
     total_rating: {
         type: Sequelize.INTEGER(255),
-        default: 0,
+        defaultValue: 0,
         allowNull: false,
     },
     nr_ratings: {
         type: Sequelize.INTEGER(100),
-        default: 0,
+        defaultValue: 0,
         allowNull: false,
     },
     counter: {
         type: Sequelize.INTEGER(11),
         defaultValue: 0
     }
+    
 });

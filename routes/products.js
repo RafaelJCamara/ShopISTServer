@@ -19,6 +19,7 @@ router.post("/:productId/addPrice", productController.addProductPrice);
 
 //update product rate
 router.post("/:productId/rateProduct", productController.rateProduct);
+
 //get product image
 router.get("/:productName/getUrl", productController.getProductUrl);
 
