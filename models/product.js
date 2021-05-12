@@ -31,5 +31,9 @@ module.exports = sequelize.define("Product", {
         type: Sequelize.INTEGER(100),
         default: 0,
         allowNull: false,
+    },
+    counter: {
+        type: Sequelize.INTEGER(11),
+        defaultValue: 0
     }
 });

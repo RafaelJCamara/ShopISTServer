@@ -17,10 +17,12 @@ router.post("/:productId/addPhoto", productController.addPhoto);
 //add price to a product (when in a store)
 router.post("/:productId/addPrice", productController.addProductPrice);
 
-//remove product (when in pantry)
-router.delete("/:productId/remove", productController.deleteProduct);
-
 //update product rate
 router.post("/:productId/rateProduct", productController.rateProduct);
+//get product image
+router.get("/:productName/getUrl", productController.getProductUrl);
+
+//get product suggestion
+router.get("/:productName/suggestions", productController.getProductSugggestions);
 
 module.exports = router;

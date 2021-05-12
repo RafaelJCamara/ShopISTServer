@@ -10,6 +10,10 @@ const uid = new ShortUniqueId(options);
 const PantryToShoppingModel = require("../models/pantrytoshopping");
 const ShoppingListModel = require("../models/shoppinglist");
 const ShoppingListProductModel = require("../models/shoppinglistproduct");
+const ImageModel = require("../models/images");
+const UserPantryListModel = require("../models/userpantrylist");
+const UserModel = require("../models/user");
+const PantryListAccessGrantModel = require("../models/pantryaccessgrant");
 
 const NodeGeocoder = require('node-geocoder');
 const optionsGeocoder = {
@@ -26,7 +30,7 @@ module.exports.createList = async (req, res) => {
     console.log("Request for pantry list creation");
     console.log(req.body);
     console.log("******************");
-    const { name, address } = req.body;
+    const { name, address, userId } = req.body;
     const listUuid = uid();
 
     const newList = await PantryListModel.create({
@@ -34,6 +38,11 @@ module.exports.createList = async (req, res) => {
         uuid: listUuid,
         address
     });
+
+    await UserPantryListModel.create({
+        UserId: userId,
+        PantryListId: newList.id,
+    })
 
     const info = {
         listId: listUuid
@@ -203,10 +212,8 @@ module.exports.updatePantry = async (req, res) => {
             await ShoppingListProductModel.create({
                 needed: Number(needed.trim()),
                 ShoppingListId: Number(foundShoppingList.id),
-                ProductId: Number(productId.trim()), 
-                inCart: 0
-                
-            })
+                ProductId: Number(productId.trim())
+            });
         }
 
     });
@@ -230,7 +237,7 @@ module.exports.addProductToPantry = async (req, res) => {
         }
     });
 
-    const { name, description, barcode, stock, needed } = req.body;
+    const { name, description, barcode, stock, needed, imageUrl } = req.body;
 
     try {
         //add the product to the database
@@ -246,9 +253,157 @@ module.exports.addProductToPantry = async (req, res) => {
             ProductId: newProduct.id,
         });
 
+        //save cloud url information
+        await ImageModel.create({
+            url: imageUrl,
+            productId: newProduct.id
+        });
+
     } catch (e) {
         console.log("Error: ", e);
     }
+
+    res.status(200).send();
+}
+
+//get all pantry lists for a specific user
+module.exports.getAllUserPantryLists = async (req, res) => {
+    console.log("******************");
+    console.log("Request for all user pantry lists.");
+    console.log(req.body);
+    console.log("******************");
+
+    const { userId } = req.params;
+    console.log(`Searching user id: ${userId}`);
+
+    //get list
+    const foundUser = await UserModel.findOne({
+        where: {
+            id: userId.trim()
+        },
+        include: PantryListModel
+    });
+
+    const sendList = {
+        userList: [],
+    };
+
+    foundUser.PantryLists.forEach(pantryList => {
+        sendList.userList.push(`${pantryList.dataValues.name} -> ${pantryList.dataValues.uuid}`);
+        // console.log(`${pantryList.dataValues.name} -> ${pantryList.dataValues.uuid}`)
+    });
+
+    //seach for ACLs
+    const foundACLs = await PantryListAccessGrantModel.findAll({
+        where: {
+            email: foundUser.email
+        },
+        include:
+        {
+            all: true,
+            nested: true
+        }
+    });
+
+    // foundACLs.forEach(el => {
+    //     const pantryListId = el.pantryUserId.dataValues.PantryListId;
+    //     // console.log(el.pantryUserId.dataValues)
+
+    // });
+
+    for (let i = 0; i != foundACLs.length; i++) {
+        const pantryListId = foundACLs[i].pantryUserId.dataValues.PantryListId;
+        const foundPList = await PantryListModel.findOne({
+            where: {
+                id: pantryListId
+            }
+        });
+        sendList.userList.push(`${foundPList.name} -> ${foundPList.uuid}`);
+    }
+
+
+    res.status(200).send(JSON.stringify(sendList));
+}
+
+//grant access to user for a specific pantry list
+module.exports.grantUserAccess = async (req, res) => {
+    console.log("******************");
+    console.log("Request to grant access to a specific pantry list.");
+    console.log(req.body);
+    console.log("******************");
+
+    const { listId } = req.params;
+    const { userEmail, ownerId } = req.body;
+
+    const foundList = await PantryListModel.findOne({
+        where: {
+            uuid: listId.trim()
+        }
+    });
+
+    const foundUser = await UserModel.findOne({
+        where: {
+            id: ownerId.trim()
+        }
+    });
+
+    console.log("####################");
+    console.log("User id: ", foundUser.id);
+    console.log("Pantry list id: ", foundList.id);
+    console.log("####################");
+
+    const foundMatch = await UserPantryListModel.findOne({
+        where: {
+            UserId: foundUser.id,
+            PantryListId: foundList.id
+        }
+    });
+
+    await PantryListAccessGrantModel.create({
+        UserPantryId: foundMatch.id,
+        email: userEmail
+    });
+
+
+    res.status(200).send();
+}
+
+//remove access to user for a specific pantry list
+module.exports.removeUserAccess = async (req, res) => {
+    console.log("******************");
+    console.log("Request to remove access to a specific pantry list.");
+    console.log(req.body);
+    console.log("******************");
+
+    const { listId } = req.params;
+    const { userEmail, ownerId } = req.body;
+
+    const foundList = await PantryListModel.findOne({
+        where: {
+            uuid: listId.trim()
+        }
+    });
+
+    const foundUser = await UserModel.findOne({
+        where: {
+            id: ownerId.trim()
+        }
+    });
+
+    const foundMatch = await UserPantryListModel.findOne({
+        where: {
+            UserId: foundUser.id,
+            PantryListId: foundList.id
+        }
+    });
+
+    await PantryListAccessGrantModel.destroy({
+        where: {
+            UserPantryId: foundMatch.id,
+            email: userEmail
+        }
+    });
+
 
     res.status(200).send();
 }

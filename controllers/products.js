@@ -3,6 +3,8 @@ const { Op } = require("sequelize");
 const ImageModel = require("../models/images");
 const StoreProductModel = require("../models/storeproduct");
 const ShoppingListModel = require("../models/shoppinglist");
+const ProductModel = require("../models/product");
+const ProductSuggestionsModel = require("../models/suggestion");
 
 //when someone wants to create a product
 module.exports.createProduct = async (req, res) => {
@@ -37,7 +39,6 @@ module.exports.createProduct = async (req, res) => {
     }
 };
 
-
 //add a photo to a product
 module.exports.addPhoto = async (req, res) => {
     console.log("**********************************");
@@ -64,6 +65,33 @@ module.exports.getProduct = async (req, res) => {
     console.log("There was a request to check product detail.");
     console.log(req.body);
     console.log("**********************************");
+};
+
+module.exports.getProductUrl = async (req, res) => {
+    console.log("**********************************");
+    console.log("There was a request to get a product url.");
+    console.log(req.body);
+    console.log("**********************************");
+    const { productName } = req.params;
+
+    const foundProduct = await ProductModel.findOne({
+        where: {
+            name: productName.trim()
+        }
+    });
+
+
+    const foundProductImage = await ImageModel.findOne({
+        where: {
+            productId: foundProduct.id
+        }
+    });
+
+    const sendInfo = {
+        imageURL: foundProductImage.url
+    }
+
+    res.status(200).send(JSON.stringify(sendInfo));
 };
 
 module.exports.deleteProduct = async (req, res) => {
@@ -177,3 +205,103 @@ module.exports.rateProduct = async (req, res) => {
         );
         
 };
+//get product suggestions
+module.exports.getProductSugggestions = async (req, res) => {
+    console.log("**********************************");
+    console.log("There was a request to check a product's suggestions.");
+    console.log(req.body);
+    console.log("**********************************");
+    const { productName } = req.params;
+
+    const foundProduct = await ProductModel.findOne({
+        where: {
+            name: productName
+        }
+    });
+
+    const foundFirstProduct = await ProductSuggestionsModel.findAll({
+        where: {
+            productone: foundProduct.id
+        }
+    });
+
+    const foundSecondProduct = await ProductSuggestionsModel.findAll({
+        where: {
+            producttwo: foundProduct.id
+        }
+    });
+
+
+    let allSuggested = [];
+
+    if (foundFirstProduct.length > 0) {
+        for (let i = 0; i != foundFirstProduct.length; i++) {
+            const amountInPairs = foundFirstProduct[i].dataValues.amount;
+            const productOneId = foundFirstProduct[i].dataValues.productone;
+            const foundPOne = await ProductModel.findOne({
+                where: {
+                    id: productOneId
+                }
+            });
+            const amountPOneBought = foundPOne.counter;
+            const productTwoId = foundFirstProduct[i].dataValues.producttwo;
+            const foundPTwo = await ProductModel.findOne({
+                where: {
+                    id: productTwoId
+                }
+            });
+            const amountPTwoBought = foundPTwo.counter;
+
+            const maxAmount = Math.max(Number(amountPOneBought), Number(amountPTwoBought));
+            if ((amountInPairs / maxAmount) > 0.5) {
+                allSuggested.push({
+                    pname: foundPTwo.name,
+                    delta: (amountInPairs / maxAmount)
+                });
+            }
+        }
+    }
+
+    if (foundSecondProduct.length > 0) {
+        for (let i = 0; i != foundSecondProduct.length; i++) {
+            const amountInPairs = foundSecondProduct[i].dataValues.amount;
+            const productOneId = foundSecondProduct[i].dataValues.productone;
+            const foundPOne = await ProductModel.findOne({
+                where: {
+                    id: productOneId
+                }
+            });
+            const amountPOneBought = foundPOne.counter;
+            const productTwoId = foundSecondProduct[i].dataValues.producttwo;
+            const foundPTwo = await ProductModel.findOne({
+                where: {
+                    id: productTwoId
+                }
+            });
+            const amountPTwoBought = foundPTwo.counter;
+
+            const maxAmount = Math.max(Number(amountPOneBought), Number(amountPTwoBought));
+            if ((amountInPairs / maxAmount) > 0.5) {
+                allSuggested.push({
+                    pname: foundPOne.name,
+                    delta: (amountInPairs / maxAmount)
+                });
+            }
+        }
+    }
+
+    let maxValue = -1;
+    let maxName = "";
+
+    for (let i = 0; i != allSuggested.length; i++) {
+        if (allSuggested[i].delta > maxValue) {
+            maxName = allSuggested[i].pname;
+        }
+    }
+
+    const sendInfo = {
+        name: maxName
+    }
+
+    res.status(200).send(JSON.stringify(sendInfo));
+}

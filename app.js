@@ -19,19 +19,53 @@ const PantryToShopping = require("./models/pantrytoshopping");
 const PantryListProducts = require("./models/pantrylistproduct");
 const StoreProducts = require("./models/storeproduct");
 const ImageModel = require("./models/images");
+const WaitTimeModel = require("./models/waittime");
+const WaitingTimeInfoModel = require("./models/waitingtimeinfo");
+const UserPantryListModel = require("./models/userpantrylist");
+const UserShoppingModel = require("./models/usershopping");
+const PantryListAccessGrant = require("./models/pantryaccessgrant");
+const ShoppingListAccessGrant = require("./models/shoppingaccessgrant");
+const SuggestionModel = require("./models/suggestion");
 
 //Relationship associations
 /**
  * M-M relationship between User and PantryList
  */
-UserModel.belongsToMany(PantryListModel, { through: 'UserPantryList' });
-PantryListModel.belongsToMany(UserModel, { through: 'UserPantryList' });
+UserModel.belongsToMany(PantryListModel, { through: UserPantryListModel });
+PantryListModel.belongsToMany(UserModel, { through: UserPantryListModel });
+
+/**
+ * 1-M relationship between User and PantryList (extra access)
+ */
+UserPantryListModel.hasMany(PantryListAccessGrant, {
+    as: "userpantrylist"
+});
+
+PantryListAccessGrant.belongsTo(UserPantryListModel, {
+    foreignKey: "id",
+    as: "pantryUserId"
+});
+
 
 /**
  * M-M relationship between User and ShoppingList
  */
-UserModel.belongsToMany(ShoppingListModel, { through: 'UserShoppingList' });
-ShoppingListModel.belongsToMany(UserModel, { through: 'UserShoppingList' });
+UserModel.belongsToMany(ShoppingListModel, { through: UserShoppingModel });
+ShoppingListModel.belongsToMany(UserModel, { through: UserShoppingModel });
+
+
+/**
+ * 1-M relationship between User and ShoppingList (extra access)
+ */
+UserShoppingModel.hasMany(ShoppingListAccessGrant, {
+    as: "usershoplist"
+});
+
+ShoppingListAccessGrant.belongsTo(UserShoppingModel, {
+    foreignKey: "id",
+    as: "shopUserId"
+});
+
 
 /**
  * M-M relationship between PantryList and ShoppingList
@@ -113,11 +147,42 @@ ImageModel.belongsTo(ProductModel, {
 });
 
 
+/**
+ * 1-M relationship between Images and Products
+ */
+StoreModel.hasMany(WaitTimeModel, {
+    foreignKey: "storeId",
+    as: "previsions"
+});
+WaitTimeModel.belongsTo(StoreModel, {
+    foreignKey: "storeId",
+    as: "store"
+});
+
+/**
+ * 1-M relationship between Store and WaitingTimeInfo
+ */
+StoreModel.hasMany(WaitingTimeInfoModel, {
+    foreignKey: "storeId",
+    as: "waitinginfo"
+});
+WaitingTimeInfoModel.belongsTo(StoreModel, {
+    foreignKey: "storeId",
+    as: "store"
+});
+
+
+/**
+ * 
+ */
+
+SuggestionModel.belongsTo(ProductModel, { as: 'firstProduct', foreignKey: 'productone' });
+SuggestionModel.belongsTo(ProductModel, { as: 'secondProduct', foreignKey: 'producttwo' });
+
 //update every model on the database
 sequelize.sync({
     logging: false,
 });
-
 
 //using json
 app.use(express.json());

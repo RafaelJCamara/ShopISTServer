@@ -34,6 +34,15 @@ router.post("/pantry/:listId/addProduct", pantryListController.addProductToPantr
 //update pantry list
 router.post("/pantry/:listId/update", pantryListController.updatePantry);
 
+//get all pantry lists for a specific user
+router.get("/pantry/userLists/:userId", pantryListController.getAllUserPantryLists);
+
+//grant access to user for a specific pantry list
+router.post("/pantry/:listId/grantaccess", pantryListController.grantUserAccess);
+
+//remove user access  for a specific pantry list
+router.post("/pantry/:listId/removeaccess", pantryListController.removeUserAccess);
+
 /*
     Shopping list routes
 */
@@ -44,10 +53,16 @@ router.post("/shopping", shoppingListController.createList);
 //get a shopping list by it's code
 router.get("/shopping/:listId", shoppingListController.getList);
 
-//get a shopping list by it's code
-router.get("/shopping", shoppingListController.getAllLists);
-
 //delete a specific shopping list
 router.delete("/shopping/:listId", shoppingListController.deleteList);
+
+//get all shopping lists for a specific user
+router.get("/shopping/userLists/:userId", shoppingListController.getAllUserShoppingLists);
+
+//grant access to user for a specific shopping list
+router.post("/shopping/:listId/grantaccess", shoppingListController.grantUserAccess);
+
+//remove user access  for a specific shopping list
+router.post("/shopping/:listId/removeaccess", shoppingListController.removeUserAccess);
 
 module.exports = router;

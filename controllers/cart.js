@@ -10,12 +10,13 @@ const sequelize = require("../database/connection");
 const PantryListProduct = require("../models/pantrylistproduct");
 const PantryToShopping = require("../models/pantrytoshopping");
 
-
-module.exports.getCart = async(req, res) => {
-
+module.exports.getCart = async (req, res) => {
     const { shoppingId } = req.params;
 
-    console.log("#################################/n this is shoppingid from client:" + shoppingId.trim());
+    console.log("******************");
+    console.log("Request for getting a cart.");
+    console.log(shoppingId.trim());
+    console.log("******************");
 
     const cart = await Cart.findOne({
         where: {
@@ -34,14 +35,14 @@ module.exports.getCart = async(req, res) => {
             {
                 model: Product,
                 through:
-                    {
-                        model: ShoppingListProduct,    
-                        where: {
-                            inCart: {
-                                [Op.gt]: 0
-                            } 
+                {
+                    model: ShoppingListProduct,
+                    where: {
+                        inCart: {
+                            [Op.gt]: 0
                         }
                     }
+                }
             }
         ]*/
     });
@@ -55,7 +56,7 @@ module.exports.getCart = async(req, res) => {
         where: {
             productId: {
                 [Op.in]: foundList.Products.map((el) => el.id)
-            }            
+            }
         }
     });
 
@@ -68,7 +69,7 @@ module.exports.getCart = async(req, res) => {
 
     foundList.dataValues.Products.forEach(el => {
         let p = prices.find((e) => e.ProductId == el.id);
-        if(p) {
+        if (p) {
             cartInfo.products.push({
                 productId: el.id,
                 name: el.name,
@@ -80,11 +81,13 @@ module.exports.getCart = async(req, res) => {
         }
     });
 
+    console.log(cartInfo);
+
     res.status(200).send(JSON.stringify(cartInfo));
 
 };
 
-module.exports.checkoutCart = async(req, res) => {
+module.exports.checkoutCart = async (req, res) => {
 
     const { shoppingId } = req.params;
 
@@ -106,8 +109,8 @@ module.exports.checkoutCart = async(req, res) => {
         }
     });
 
-    shoppingListModel.dataValues.Products.forEach(el => {
-        PantryListProduct.update({
+    shoppingListModel.dataValues.Products.forEach(async (el) => {
+        await PantryListProduct.update({
             needed: sequelize.literal('GREATEST(0, needed - ' + el.ShoppingListProduct.inCart + ')'),
             stock: sequelize.literal('stock + ' + el.ShoppingListProduct.inCart)
         }, {
@@ -148,8 +151,6 @@ module.exports.addProductToCart = async(req, res) => {
                 id: productId.trim()
             }
         });
-        console.log("\n################################\nthis is my product:" + foundProduct.id);
-
         
         const listFound = await ShoppingListModel.findOne({
             where: {
@@ -164,15 +165,7 @@ module.exports.addProductToCart = async(req, res) => {
             ]
         });
 
-        listFound.dataValues.Products.forEach(el => {
-            console.log(el.name);
-            console.log(el.ShoppingListId);
-            console.log(el.inCart);
-        });
-
-        /*await ShoppingListProduct.forEach(el => {
-            console.log("product id:" + el.name + " ;product nedded:"+ el.needed + " ;product cart:"+ el.inCart );
-        });*/
+    
 
         const shopProductFound = await ShoppingListProduct.findOne({
             where: {
