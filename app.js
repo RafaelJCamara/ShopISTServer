@@ -26,6 +26,8 @@ const UserShoppingModel = require("./models/usershopping");
 const PantryListAccessGrant = require("./models/pantryaccessgrant");
 const ShoppingListAccessGrant = require("./models/shoppingaccessgrant");
 const SuggestionModel = require("./models/suggestion");
+const fs = require('fs');
+const https = require('https');
 
 //Relationship associations
 /**
@@ -70,8 +72,19 @@ ShoppingListAccessGrant.belongsTo(UserShoppingModel, {
 /**
  * M-M relationship between PantryList and ShoppingList
  */
-ShoppingListModel.belongsToMany(PantryListModel, { through: PantryToShopping });
-PantryListModel.belongsToMany(ShoppingListModel, { through: PantryToShopping });
+ShoppingListModel.belongsToMany(PantryListModel, {
+    through: {
+        model: PantryToShopping,
+        unique: false,
+    }
+});
+
+PantryListModel.belongsToMany(ShoppingListModel, {
+    through: {
+        model: PantryToShopping,
+        unique: false,
+    }
+});
 
 /**
  * M-M relationship between PantryList and Products
@@ -175,7 +188,6 @@ WaitingTimeInfoModel.belongsTo(StoreModel, {
 /**
  * 
  */
-
 SuggestionModel.belongsTo(ProductModel, { as: 'firstProduct', foreignKey: 'productone' });
 SuggestionModel.belongsTo(ProductModel, { as: 'secondProduct', foreignKey: 'producttwo' });
 
@@ -205,6 +217,25 @@ app.use("/store", storeRouter);
 //cart routes
 app.use("/cart", cartRouter);
 
+// const clientAuthMiddleware = () => (req, res, next) => {
+//   if (!req.client.authorized) {
+//     return res.status(401).send('Invalid client certificate authentication.');
+//   }
+//   return next();
+// };
+
+// app.use(clientAuthMiddleware());
+
+// https.createServer(
+// 	{
+// 		requestCert: true,
+//       		rejectUnauthorized: false,
+// 		ca: fs.readFileSync('ssl/ca_bundle.crt'),
+// 		cert: fs.readFileSync('ssl/certificate.crt'),
+// 		key: fs.readFileSync('ssl/private.key')
+// 	},
+// 	app
+// ).listen(8443);
 
 app.listen("3000", () => {
     console.log("Server started...");

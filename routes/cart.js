@@ -10,7 +10,10 @@ const cartController = require("../controllers/cart");
 router.get("/:shoppingId", cartController.getCart);
 
 //checkout a cart
-router.post("/:shoppingId", cartController.checkoutCart);
+router.post("/checkout/:shoppingId", cartController.checkoutCart);
+
+//create a new cart
+router.post("/createCart", cartController.createCart);
 
 //add product to cart
 router.post("/:shoppingId/addProduct", cartController.addProductToCart);

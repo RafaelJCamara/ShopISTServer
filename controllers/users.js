@@ -47,6 +47,11 @@ module.exports.login = async (req, res) => {
         }
     });
 
+    if(!foundUser) {
+        console.log("User not found");
+        return res.status(404).send();
+    }
+
     const comparePw = await bcrypt.compare(req.body.password, foundUser.password);
 
     if (comparePw) {
