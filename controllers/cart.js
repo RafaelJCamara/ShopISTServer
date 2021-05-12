@@ -13,6 +13,53 @@ const ProductModel = require("../models/product");
 const PantryListModel = require("../models/pantrylist");
 const PantryListProductModel = require("../models/pantrylistproduct");
 
+
+module.exports.createCart = async (req, res) => {
+    console.log("******************");
+    console.log("Request for creating a cart.");
+    console.log(req.body);
+    console.log("******************");
+
+    const { shopId } = req.body;
+
+    const foundShoppingList = await ShoppingListModel.findOne({
+        where: {
+            uuid: shopId.trim()
+        }
+    });
+
+
+    const foundAllShoppingListProducts = await ShoppingListProduct.findAll({
+        where: {
+            ShoppingListId: foundShoppingList.id
+        }
+    });
+
+    let totalInCart = 0;
+
+    for (let i = 0; i != foundAllShoppingListProducts.length; i++) {
+        const foundStoreProduct = await StoreProduct.findOne({
+            where: {
+                ProductId: foundAllShoppingListProducts[i].ProductId,
+                StoreId: foundShoppingList.id,
+            }
+        });
+        totalInCart += (Number(foundStoreProduct.price) * Number(foundAllShoppingListProducts[i].inCart));
+    }
+
+
+
+    await Cart.create({
+        name: `${foundShoppingList.name} cart`,
+        total: totalInCart,
+        checkoutQueueTime: 1,
+        shoppingId: foundShoppingList.id,
+        storeId: foundShoppingList.id
+    });
+
+    res.status(200).send();
+}
+
 module.exports.getCart = async (req, res) => {
     const { shoppingId } = req.params;
 
@@ -21,15 +68,9 @@ module.exports.getCart = async (req, res) => {
     console.log(shoppingId.trim());
     console.log("******************");
 
-    const cart = await Cart.findOne({
-        where: {
-            shoppingId: shoppingId.trim()
-        },
-    });
-
     const foundList = await ShoppingListModel.findOne({
         where: {
-            id: shoppingId
+            uuid: shoppingId.trim()
         },
         include: [
             {
@@ -45,6 +86,12 @@ module.exports.getCart = async (req, res) => {
                 }
             }
         ]
+    });
+
+    const cart = await Cart.findOne({
+        where: {
+            shoppingId: foundList.id
+        },
     });
 
     const prices = await StoreProduct.findAll({
@@ -72,11 +119,11 @@ module.exports.getCart = async (req, res) => {
                 price: p.price,
                 quantity: el.ShoppingListProduct.inCart
             });
-            cartInfo.total += p.price * el.ShoppingListProduct.inCart;
+            // cartInfo.total += p.price * el.ShoppingListProduct.inCart;
         }
     });
 
-    console.log(cartInfo);
+    // console.log(cartInfo);
 
     res.status(200).send(JSON.stringify(cartInfo));
 
