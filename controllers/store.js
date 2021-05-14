@@ -51,7 +51,7 @@ module.exports.updateProductAtStore = async (req, res) => {
         }
     });
 
-    await StoreProductModel.create({
+    await StoreProductModel.upsert({
         price: Number(productPrice),
         StoreId: Number(foundShoppingList.StoreId),
         ProductId: Number(productId)

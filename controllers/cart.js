@@ -5,7 +5,7 @@ const Product = require("../models/product");
 const Store = require("../models/store");
 const ShoppingListModel = require("../models/shoppinglist");
 const ShoppingListProduct = require("../models/shoppinglistproduct");
-const StoreProductModel = require("../models/storeproduct");
+const StoreProduct = require("../models/storeproduct");
 const sequelize = require("../database/connection");
 const PantryToShopping = require("../models/pantrytoshopping");
 const SuggestionModel = require("../models/suggestion");
@@ -119,7 +119,8 @@ module.exports.getCart = async (req, res) => {
                 price: p.price,
                 quantity: el.ShoppingListProduct.inCart
             });
-            // cartInfo.total += p.price * el.ShoppingListProduct.inCart;
+            cartInfo.quantity += el.ShoppingListProduct.inCart;
+            cartInfo.total += p.price * el.ShoppingListProduct.inCart;
         }
     });
 
@@ -129,7 +130,7 @@ module.exports.getCart = async (req, res) => {
 
 };
 
-module.exports.checkoutCart = async (req, res) => {
+module.exports.checkoutCartTempDisabled = async (req, res) => {
     console.log("******************");
     console.log("Request for checking out.");
     console.log(req.body);
@@ -252,6 +253,49 @@ module.exports.checkoutCart = async (req, res) => {
     }
 
     //remove products from shopping list
+
+    res.status(200).send();
+
+};
+
+module.exports.checkoutCart = async (req, res) => {
+    console.log("******************");
+    console.log("Request for checking out.");
+    console.log(req.body);
+    console.log("******************");
+
+
+    const { shoppingId } = req.params;
+
+    console.log("Shopping List UUID: " + shoppingId);
+
+ 
+    //remove products from shopping list
+    const foundShopping = await ShoppingListModel.findOne({
+        where: {
+            uuid: shoppingId.trim()
+        }
+    });
+
+    console.log("Found shoppingList? " + foundShopping != null && foundShopping != undefined);
+
+    const foundShoppingProducts = await ShoppingListProduct.findAll({
+        where: {
+            ShoppingListId: foundShopping.id,
+            //ProductId: foundProduct.id
+        }
+    });
+
+    if (foundShoppingProducts != null) {
+        console.log(foundShoppingProducts);
+        for(var i = 0; i < foundShoppingProducts.length; ++i) {
+            const currentNeededShop = foundShoppingProducts[i].needed;
+            foundShoppingProducts[i].needed = currentNeededShop - Number(foundShoppingProducts[i].quantity);
+            foundShoppingProducts[i].inCart = 0;
+            await foundShoppingProducts[i].save();
+        }
+    }
+
 
     res.status(200).send();
 
