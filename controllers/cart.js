@@ -28,34 +28,44 @@ module.exports.createCart = async (req, res) => {
         }
     });
 
-
-    const foundAllShoppingListProducts = await ShoppingListProduct.findAll({
+    //check if the cart already exists
+    const foundCart = await Cart.findOne({
         where: {
-            ShoppingListId: foundShoppingList.id
+            shoppingId: foundShoppingList.id
         }
     });
 
-    let totalInCart = 0;
-
-    for (let i = 0; i != foundAllShoppingListProducts.length; i++) {
-        const foundStoreProduct = await StoreProduct.findOne({
+    if (foundCart == null) {
+        //cart does not exists
+        //create
+        const foundAllShoppingListProducts = await ShoppingListProduct.findAll({
             where: {
-                ProductId: foundAllShoppingListProducts[i].ProductId,
-                StoreId: foundShoppingList.id,
+                ShoppingListId: foundShoppingList.id
             }
         });
-        totalInCart += (Number(foundStoreProduct.price) * Number(foundAllShoppingListProducts[i].inCart));
+
+        let totalInCart = 0;
+
+        for (let i = 0; i != foundAllShoppingListProducts.length; i++) {
+            const foundStoreProduct = await StoreProduct.findOne({
+                where: {
+                    ProductId: foundAllShoppingListProducts[i].ProductId,
+                    StoreId: foundShoppingList.id,
+                }
+            });
+            totalInCart += (Number(foundStoreProduct.price) * Number(foundAllShoppingListProducts[i].inCart));
+        }
+
+
+
+        await Cart.create({
+            name: `${foundShoppingList.name} cart`,
+            total: totalInCart,
+            checkoutQueueTime: 1,
+            shoppingId: foundShoppingList.id,
+            storeId: foundShoppingList.id
+        });
     }
-
-
-
-    await Cart.create({
-        name: `${foundShoppingList.name} cart`,
-        total: totalInCart,
-        checkoutQueueTime: 1,
-        shoppingId: foundShoppingList.id,
-        storeId: foundShoppingList.id
-    });
 
     res.status(200).send();
 }
@@ -134,7 +144,6 @@ module.exports.checkoutCart = async (req, res) => {
     console.log("Request for checking out.");
     console.log(req.body);
     console.log("******************");
-
 
     const { shoppingId } = req.params;
 
