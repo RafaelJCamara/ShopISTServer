@@ -77,9 +77,16 @@ module.exports.currentWaitingTime = async (req, res) => {
     console.log("******************");
 
     const { storeId } = req.params;
+
+    const foundShoppingList = await ShoppingListModel.findOne({
+        where: {
+            uuid: storeId.trim()
+        }
+    });
+
     const foundWaitingList = await WaitTimeModel.findAll({
         where: {
-            storeId: storeId.trim()
+            storeId: foundShoppingList.id
         }
     });
 
@@ -103,7 +110,7 @@ module.exports.currentWaitingTime = async (req, res) => {
 
         const linearRegressionInfoPerStore = await WaitingTimeInfoModel.findAll({
             where: {
-                storeId: storeId.trim()
+                storeId: foundShoppingList.id
             }
         });
 
