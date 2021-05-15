@@ -69,6 +69,31 @@ module.exports.updateProductAtStore = async (req, res) => {
     res.status(200).send();
 }
 
+module.exports.updateProductPriceAtStore = async (req, res) => {
+    console.log("******************");
+    console.log("Request for updating a product at a store.");
+    console.log(req.body);
+    console.log("******************");
+
+    const {productPrice, shoppingListId, productId } = req.body;
+
+    console.log("price:"+ productPrice + "\nshoppingListId:" + shoppingListId + "\nproductID:" + productId);
+
+    //get shopping list we were 
+    const foundShoppingList = await ShoppingListModel.findOne({
+        where: {
+            uuid: shoppingListId.trim()
+        }
+    });
+
+    await StoreProductModel.upsert({
+        price: Number(productPrice),
+        StoreId: Number(foundShoppingList.StoreId),
+        ProductId: Number(productId)
+    });
+    res.status(200).send();
+}
+
 //get current estimated waiting time
 module.exports.currentWaitingTime = async (req, res) => {
     console.log("******************");

@@ -8,6 +8,9 @@ router.post("/", storeController.createStore);
 //updates a product price at store
 router.post("/updateProduct", storeController.updateProductAtStore);
 
+//updates a product price at store
+router.post("/updateProductPrice", storeController.updateProductPriceAtStore);
+
 //asks for the current estimated waiting time
 router.get("/:storeId/currentWaitingTime", storeController.currentWaitingTime);
 
