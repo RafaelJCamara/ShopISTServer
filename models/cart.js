@@ -17,8 +17,8 @@ module.exports = sequelize.define("Cart", {
         defaultValue: 0,
         allowNull: false
     },
-    checkoutQueueTime: {
-        type: Sequelize.DOUBLE(4, 2),
-        allowNull: false
+    userId: {
+        type: Sequelize.INTEGER(11),
+        allowNull: false,
     }
 });
