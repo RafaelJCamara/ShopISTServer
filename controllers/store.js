@@ -42,7 +42,7 @@ module.exports.updateProductAtStore = async (req, res) => {
 
     const { productQuantity, productPrice, shoppingListId, productId } = req.body;
 
-    console.log("quantity:" + productQuantity + "\nprice:"+ productPrice + "\nshoppingListId:" + shoppingListId + "\nproductID:" + productId);
+    console.log("quantity:" + productQuantity + "\nprice:" + productPrice + "\nshoppingListId:" + shoppingListId + "\nproductID:" + productId);
 
     //get shopping list we were 
     const foundShoppingList = await ShoppingListModel.findOne({
@@ -141,10 +141,18 @@ module.exports.initCheckoutProcess = async (req, res) => {
     //generate uuid
     const checkoutUuid = uid();
 
+
+    const foundShopping = await ShoppingListModel.findOne({
+        where: {
+            uuid: storeId.trim()
+        }
+    });
+
+
     //get registered checkouts for that store
     const allCheckoutRegistered = await WaitTimeModel.findAll({
         where: {
-            storeId: storeId.trim()
+            storeId: foundShopping.id
         }
     });
 
@@ -167,7 +175,7 @@ module.exports.initCheckoutProcess = async (req, res) => {
         timeArriving: currentDate,
         numberCartItems: numberItemsCart,
         numberCartItemsInLine: totalNumberOfProducts,
-        storeId: storeId.trim()
+        storeId: foundShopping.id
     });
 
     const sendInfo = {
@@ -188,9 +196,16 @@ module.exports.endCheckoutProcess = async (req, res) => {
     const { checkoutId } = req.body;
     const currentDate = new Date();
 
+    const foundShopping = await ShoppingListModel.findOne({
+        where: {
+            uuid: storeId.trim()
+        }
+    });
+
+
     const foundWaitingTime = await WaitTimeModel.findOne({
         where: {
-            uuid: checkoutId
+            uuid: checkoutId.trim()
         }
     });
 
@@ -203,12 +218,12 @@ module.exports.endCheckoutProcess = async (req, res) => {
     await WaitingTimeInfoModel.create({
         x: Number(foundWaitingTime.numberCartItems),
         y: Number(currentTimeMinutes) - Number(arrivalTimeMinutes),
-        storeId: storeId.trim()
+        storeId: foundShopping.id
     });
 
     await WaitTimeModel.destroy({
         where: {
-            uuid: checkoutId
+            uuid: checkoutId.trim()
         }
     });
 

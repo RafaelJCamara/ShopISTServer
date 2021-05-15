@@ -37,29 +37,27 @@ module.exports.createCart = async (req, res) => {
         }
     });
 
+    const foundAllShoppingListProducts = await ShoppingListProduct.findAll({
+        where: {
+            ShoppingListId: foundShoppingList.id
+        }
+    });
+
+    let totalInCart = 0;
+
+    for (let i = 0; i != foundAllShoppingListProducts.length; i++) {
+        const foundStoreProduct = await StoreProduct.findOne({
+            where: {
+                ProductId: foundAllShoppingListProducts[i].ProductId,
+                StoreId: foundShoppingList.id,
+            }
+        });
+        totalInCart += (Number(foundStoreProduct.price) * Number(foundAllShoppingListProducts[i].inCart));
+    }
+
     if (foundCart == null) {
         //cart does not exists
         //create
-        const foundAllShoppingListProducts = await ShoppingListProduct.findAll({
-            where: {
-                ShoppingListId: foundShoppingList.id
-            }
-        });
-
-        let totalInCart = 0;
-
-        for (let i = 0; i != foundAllShoppingListProducts.length; i++) {
-            const foundStoreProduct = await StoreProduct.findOne({
-                where: {
-                    ProductId: foundAllShoppingListProducts[i].ProductId,
-                    StoreId: foundShoppingList.id,
-                }
-            });
-            totalInCart += (Number(foundStoreProduct.price) * Number(foundAllShoppingListProducts[i].inCart));
-        }
-
-
-
         await Cart.create({
             name: `${foundShoppingList.name} cart`,
             total: totalInCart,
@@ -67,6 +65,17 @@ module.exports.createCart = async (req, res) => {
             storeId: foundShoppingList.id,
             userId
         });
+    } else {
+        await Cart.update({
+            total: totalInCart
+        },
+            {
+                where: {
+                    id: foundCart.id
+                }
+            }
+
+        );
     }
 
     res.status(200).send();
