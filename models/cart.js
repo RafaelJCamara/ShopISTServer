@@ -12,6 +12,11 @@ module.exports = sequelize.define("Cart", {
         type: Sequelize.STRING(30),
         allowNull: false
     },
+    quantity: {
+        type: Sequelize.INTEGER(5),
+        defaultValue: 0,
+        allowNull: false
+    },
     total: {
         type: Sequelize.DOUBLE(6, 2),
         defaultValue: 0,

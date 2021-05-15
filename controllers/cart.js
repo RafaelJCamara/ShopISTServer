@@ -45,6 +45,7 @@ module.exports.createCart = async (req, res) => {
         });
 
         let totalInCart = 0;
+    let qtyInCart = 0;
 
         for (let i = 0; i != foundAllShoppingListProducts.length; i++) {
             const foundStoreProduct = await StoreProduct.findOne({
@@ -53,6 +54,7 @@ module.exports.createCart = async (req, res) => {
                     StoreId: foundShoppingList.id,
                 }
             });
+        qtyInCart += Number(foundAllShoppingListProducts[i].inCart);
             totalInCart += (Number(foundStoreProduct.price) * Number(foundAllShoppingListProducts[i].inCart));
         }
 
@@ -61,6 +63,7 @@ module.exports.createCart = async (req, res) => {
         await Cart.create({
             name: `${foundShoppingList.name} cart`,
             total: totalInCart,
+        quantity: qtyInCart,
             checkoutQueueTime: 1,
             shoppingId: foundShoppingList.id,
             storeId: foundShoppingList.id
@@ -116,6 +119,7 @@ module.exports.getCart = async (req, res) => {
         name: cart.name,
         checkoutQueueTime: cart.checkoutQueueTime,
         total: cart.total,
+        quantity: cart.quantity,
         products: []
     };
 
