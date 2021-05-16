@@ -117,11 +117,11 @@ module.exports.getList = async (req, res) => {
             productId: el.id,
             name: el.name,
             description: el.description,
-            needed: el.ShoppingListProduct.needed, 
+            needed: el.ShoppingListProduct.needed,
             total_rating: el.total_rating,
             nr_ratings: el.nr_ratings
         });
-        console.log(el.name +  " "+ el.id +  " " + "rating log: "+el.ShoppingListProduct.total_rating + " " + el.ShoppingListProduct.nr_ratings)
+        console.log(el.name + " " + el.id + " " + "rating log: " + el.ShoppingListProduct.total_rating + " " + el.ShoppingListProduct.nr_ratings)
     });
 
     res.status(200).send(JSON.stringify(shoppingListInfo));
@@ -170,12 +170,6 @@ module.exports.getAllUserShoppingLists = async (req, res) => {
             all: true,
             nested: true
         }
-    });
-
-    foundACLs.forEach(el => {
-        const pantryListId = el.pantryUserId.dataValues.PantryListId;
-        // console.log(el.pantryUserId.dataValues)
-
     });
 
     for (let i = 0; i != foundACLs.length; i++) {
