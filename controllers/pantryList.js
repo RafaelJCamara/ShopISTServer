@@ -228,11 +228,33 @@ module.exports.updatePantry = async (req, res) => {
                 }
             });
 
+            //check if pantry to shopping
+            const foundPantryToShopping = await PantryToShoppingModel.findOne({
+                where: {
+                    productId: productId.trim(),
+                    ShoppingListId: foundShoppingList.id,
+                    PantryListId: foundPantryList.id
+                }
+            });
+
+            const foundPantryListProd = await PantryListProductModel.findOne({
+                where: {
+                    ProductId: productId.trim(),
+                    PantryListId: foundPantryList.id,
+                }
+            });
+
             if (foundPair != null) {
                 console.log("Found pair");
                 //exists
                 //update amount
-                foundPair.needed += Number(needed);
+                if (foundPantryToShopping != null) {
+                    foundPair.needed -= foundPantryListProd._previousDataValues.needed;
+                    foundPair.needed += Number(needed);
+                } else {
+                    foundPair.needed += Number(needed);
+                }
+
                 await foundPair.save();
 
             } else {
@@ -246,11 +268,15 @@ module.exports.updatePantry = async (req, res) => {
                 });
             }
 
-            await PantryToShoppingModel.create({
-                productId: productId.trim(),
-                ShoppingListId: foundShoppingList.id,
-                PantryListId: foundPantryList.id
-            });
+
+            if (foundPantryToShopping == null) {
+                //does not exists
+                await PantryToShoppingModel.create({
+                    productId: productId.trim(),
+                    ShoppingListId: foundShoppingList.id,
+                    PantryListId: foundPantryList.id
+                });
+            }
         }
     }
 
