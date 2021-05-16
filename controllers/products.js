@@ -100,7 +100,7 @@ module.exports.deleteProduct = async (req, res) => {
     console.log("Someone wants to delete a product.");
     console.log("This was the product ID", listId);
     console.log("************");
-    };
+};
 
 //when someone is inserting a product (suggest possible names)
 module.exports.autocompleteProductName = async (req, res) => {
@@ -123,8 +123,9 @@ module.exports.autocompleteProductName = async (req, res) => {
 
         foundProducts.forEach(element => {
             sendProducts.push({
-                productId: element.id,
-                name: element.name
+                name: element.name,
+                description: element.description,
+                barcode: element.barcode,
             });
         });
     } catch (error) {
@@ -185,25 +186,25 @@ module.exports.rateProduct = async (req, res) => {
     const { productRating } = req.body;
 
     //try{
-        const foundProduct = await Product.findOne({
-            where: {
-                id: productId.trim(),
-                //barcode: productBarcode
-            }
-        });
+    const foundProduct = await Product.findOne({
+        where: {
+            id: productId.trim(),
+            //barcode: productBarcode
+        }
+    });
 
-        await Product.update(
-            {
-                total_rating: Number(foundProduct.total_rating) + Number(productRating.trim()),
-                nr_ratings:  Number(foundProduct.nr_ratings) + 1,
-            },
-            {
-                where: {
-                    id: foundProduct.id,
-                }
+    await Product.update(
+        {
+            total_rating: Number(foundProduct.total_rating) + Number(productRating.trim()),
+            nr_ratings: Number(foundProduct.nr_ratings) + 1,
+        },
+        {
+            where: {
+                id: foundProduct.id,
             }
-        );
-        
+        }
+    );
+
 };
 //get product suggestions
 module.exports.getProductSugggestions = async (req, res) => {

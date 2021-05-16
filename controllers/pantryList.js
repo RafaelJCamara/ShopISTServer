@@ -220,12 +220,31 @@ module.exports.updatePantry = async (req, res) => {
                 }
             });
 
-            //save pair in database
-            await ShoppingListProductModel.create({
-                needed: Number(needed),
-                ShoppingListId: Number(foundShoppingList.id),
-                ProductId: Number(productId.trim())
+            //check if pair shopping list - product exists
+            const foundPair = await ShoppingListProductModel.findOne({
+                where: {
+                    ShoppingListId: Number(foundShoppingList.id),
+                    ProductId: Number(productId.trim())
+                }
             });
+
+            if (foundPair != null) {
+                console.log("Found pair");
+                //exists
+                //update amount
+                foundPair.needed += Number(needed);
+                await foundPair.save();
+
+            } else {
+                console.log("Not found pair");
+                //pair does not exists
+                //save pair in database
+                await ShoppingListProductModel.create({
+                    needed: Number(needed),
+                    ShoppingListId: Number(foundShoppingList.id),
+                    ProductId: Number(productId.trim())
+                });
+            }
 
             await PantryToShoppingModel.create({
                 productId: productId.trim(),
@@ -257,24 +276,44 @@ module.exports.addProductToPantry = async (req, res) => {
     const { name, description, barcode, stock, needed, imageUrl } = req.body;
 
     try {
-        //add the product to the database
-        const newProduct = await ProductModel.create({
-            name, description, barcode, total_rating:0, nr_ratings:0
+
+        const foundProduct = await ProductModel.findOne({
+            where: {
+                name
+            }
         });
 
-        //add entry to represent that this product belongs to the specific pantry list
-        await PantryListProductModel.create({
-            stock: Number(stock),
-            needed: Number(needed),
-            PantryListId: foundList.id,
-            ProductId: newProduct.id,
-        });
+        //check if product exists(same name)
+        if (foundProduct != null) {
+            //exists
+            //add entry to represent that this product belongs to the specific pantry list
+            await PantryListProductModel.create({
+                stock: Number(stock),
+                needed: Number(needed),
+                PantryListId: foundList.id,
+                ProductId: foundProduct.id,
+            });
 
-        //save cloud url information
-        await ImageModel.create({
-            url: imageUrl,
-            productId: newProduct.id
-        });
+        } else {
+            //add the product to the database
+            const newProduct = await ProductModel.create({
+                name, description, barcode, total_rating: 0, nr_ratings: 0
+            });
+
+            //add entry to represent that this product belongs to the specific pantry list
+            await PantryListProductModel.create({
+                stock: Number(stock),
+                needed: Number(needed),
+                PantryListId: foundList.id,
+                ProductId: newProduct.id,
+            });
+
+            //save cloud url information
+            await ImageModel.create({
+                url: imageUrl,
+                productId: newProduct.id
+            });
+        }
 
     } catch (e) {
         console.log("Error: ", e);
