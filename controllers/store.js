@@ -94,6 +94,8 @@ module.exports.updateProductPriceAtStore = async (req, res) => {
     res.status(200).send();
 }
 
+
+
 //get current estimated waiting time
 module.exports.currentWaitingTime = async (req, res) => {
     console.log("******************");
