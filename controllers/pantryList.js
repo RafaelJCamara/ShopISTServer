@@ -458,7 +458,7 @@ module.exports.removeUserAccess = async (req, res) => {
     console.log("******************");
 
     const { listId } = req.params;
-    const { userEmail, ownerId } = req.body;
+    const { deleted } = req.body;
 
     const foundList = await PantryListModel.findOne({
         where: {
@@ -466,25 +466,21 @@ module.exports.removeUserAccess = async (req, res) => {
         }
     });
 
-    const foundUser = await UserModel.findOne({
-        where: {
-            id: ownerId.trim()
-        }
-    });
-
     const foundMatch = await UserPantryListModel.findOne({
         where: {
-            UserId: foundUser.id,
             PantryListId: foundList.id
         }
     });
 
-    await PantryListAccessGrantModel.destroy({
-        where: {
-            UserPantryId: foundMatch.id,
-            email: userEmail
-        }
-    });
+    for (let i = 0; i != deleted.length; i++) {
+        const splitUser = deleted[i].split(" -> ");
+        await PantryListAccessGrantModel.destroy({
+            where: {
+                UserPantryId: foundMatch.id,
+                email: splitUser[1].trim()
+            }
+        });
+    }
 
 
     res.status(200).send();

@@ -231,38 +231,34 @@ module.exports.grantUserAccess = async (req, res) => {
 //remove access to user for a specific pantry list
 module.exports.removeUserAccess = async (req, res) => {
     console.log("******************");
-    console.log("Request to remove access to a specific pantry list.");
+    console.log("Request to remove access to a specific shopping list.");
     console.log(req.body);
     console.log("******************");
 
     const { listId } = req.params;
-    const { userEmail, ownerId } = req.body;
+    const { deleted } = req.body;
 
-    const foundList = await PantryListModel.findOne({
+    const foundList = await ShoppingListModel.findOne({
         where: {
             uuid: listId.trim()
         }
     });
 
-    const foundUser = await UserModel.findOne({
+    const foundMatch = await UserShoppingListModel.findOne({
         where: {
-            id: ownerId.trim()
+            ShoppingListId: foundList.id
         }
     });
 
-    const foundMatch = await UserPantryListModel.findOne({
-        where: {
-            UserId: foundUser.id,
-            PantryListId: foundList.id
-        }
-    });
-
-    await PantryListAccessGrantModel.destroy({
-        where: {
-            UserPantryId: foundMatch.id,
-            email: userEmail
-        }
-    });
+    for (let i = 0; i != deleted.length; i++) {
+        const splitUser = deleted[i].split(" -> ");
+        await ShoppingListAccessGrantModel.destroy({
+            where: {
+                UserShoppingId: foundMatch.id,
+                email: splitUser[1].trim()
+            }
+        });
+    }
 
 
     res.status(200).send();
