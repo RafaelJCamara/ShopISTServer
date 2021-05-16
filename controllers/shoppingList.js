@@ -267,3 +267,60 @@ module.exports.removeUserAccess = async (req, res) => {
 
     res.status(200).send();
 }
+
+//get all users that share a list
+module.exports.getAllUsers = async (req, res) => {
+    console.log("******************");
+    console.log("Request to access all users of a specific shopping list.");
+    console.log(req.body);
+    console.log("******************");
+
+    const { listId } = req.params;
+
+    const sendInfo = {
+        users: []
+    }
+
+    const foundPantry = await ShoppingListModel.findOne({
+        where: {
+            uuid: listId.trim()
+        }
+    });
+
+    const accessGrants = await ShoppingListAccessGrantModel.findAll({
+        where: {
+            UserShoppingId: foundPantry.id
+        }
+    });
+
+    for (let i = 0; i != accessGrants.length; i++) {
+        const foundUser = await UserModel.findOne({
+            where: {
+                email: accessGrants[i].email
+            }
+        });
+
+        if (foundUser != null) {
+            sendInfo.users.push(`${foundUser.username} -> ${foundUser.email}`);
+        }
+    }
+
+    //inser list owner
+    const foundOwner = await UserShoppingListModel.findOne({
+        where: {
+            ShoppingListId: foundPantry.id
+        }
+    });
+
+    const foundOwnerUser = await UserModel.findOne({
+        where: {
+            id: foundOwner.UserId
+        }
+    });
+
+    sendInfo.users.push(`(owner) ${foundOwnerUser.username} -> ${foundOwnerUser.email}`);
+
+    console.log(sendInfo);
+
+    res.status(200).send(JSON.stringify(sendInfo));
+}
