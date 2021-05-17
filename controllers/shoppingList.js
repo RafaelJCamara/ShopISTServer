@@ -5,6 +5,9 @@ const StoreModel = require("../models/store");
 const UserModel = require("../models/user");
 const UserShoppingListModel = require("../models/usershopping");
 const ShoppingListAccessGrantModel = require("../models/shoppingaccessgrant");
+const StoreProductModel = require("../models/storeproduct");
+
+const { Op } = require("sequelize");
 
 /**
  * UUID settings
@@ -106,22 +109,40 @@ module.exports.getList = async (req, res) => {
         include: ProductModel
     });
 
+    const prices = await StoreProductModel.findAll({
+        where: {
+            productId: {
+                [Op.in]: foundList.Products.map((el) => el.id)
+            }
+        }
+    });
 
     const shoppingListInfo = {
         name: foundList.name,
         products: [],
     };
 
+
     foundList.dataValues.Products.forEach(el => {
+
+        let prod_price = 0;
+
+        let p = prices.find((e) => e.ProductId == el.id);
+        if (p) {
+            prod_price = p.price;
+            console.log("heyou price here " + p.price);
+        }
+
         shoppingListInfo.products.push({
             productId: el.id,
             name: el.name,
             description: el.description,
             needed: el.ShoppingListProduct.needed,
+            price: prod_price,
             total_rating: el.total_rating,
             nr_ratings: el.nr_ratings
         });
-        console.log(el.name + " " + el.id + " " + "rating log: " + el.ShoppingListProduct.total_rating + " " + el.ShoppingListProduct.nr_ratings)
+        console.log(el.name + " " + el.id + " " + "price:" + prod_price + " " + "rating log: " + el.total_rating + " " + el.nr_ratings)
     });
 
     res.status(200).send(JSON.stringify(shoppingListInfo));
