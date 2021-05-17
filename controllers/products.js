@@ -6,6 +6,8 @@ const ShoppingListModel = require("../models/shoppinglist");
 const ProductModel = require("../models/product");
 const ProductSuggestionsModel = require("../models/suggestion");
 const ShoppingListProductModel = require("../models/shoppinglistproduct");
+const PantryListModel = require("../models/pantrylist");
+const PantryListProductModel = require("../models/pantrylistproduct");
 
 
 //when someone wants to create a product
@@ -331,7 +333,7 @@ module.exports.addProductSuggested = async (req, res) => {
     console.log(req.body);
     console.log("**********************************");
 
-    const { productName, amountToBuy, allShops } = req.body;
+    const { productName, amountToBuy, allShops, pantryListUuid } = req.body;
 
     const allShopsSplitted = allShops.split(",");
 
@@ -339,6 +341,19 @@ module.exports.addProductSuggested = async (req, res) => {
         where: {
             name: productName.trim()
         }
+    });
+
+    const foundPantryList = await PantryListModel.findOne({
+        where: {
+            uuid: pantryListUuid.trim()
+        }
+    });
+
+    await PantryListProductModel.create({
+        stock: 0,
+        needed: Number(amountToBuy),
+        PantryListId: foundPantryList.id,
+        ProductId: foundProduct.id
     });
 
     for (let i = 0; i != allShopsSplitted.length; i++) {
