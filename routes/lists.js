@@ -43,6 +43,12 @@ router.post("/pantry/:listId/grantaccess", pantryListController.grantUserAccess)
 //remove user access  for a specific pantry list
 router.post("/pantry/:listId/removeaccess", pantryListController.removeUserAccess);
 
+//get all users that share a pantry list
+router.get("/pantry/:listId/getallusers", pantryListController.getAllUsers);
+
+//get all shoppings lists a product is being bought
+router.get("/list/pantry/:pantryId/allshops/:productName", pantryListController.getAllShops);
+
 /*
     Shopping list routes
 */
@@ -64,5 +70,8 @@ router.post("/shopping/:listId/grantaccess", shoppingListController.grantUserAcc
 
 //remove user access  for a specific shopping list
 router.post("/shopping/:listId/removeaccess", shoppingListController.removeUserAccess);
+
+//get all users that share a shopping list
+router.get("/shopping/:listId/getallusers", shoppingListController.getAllUsers);
 
 module.exports = router;

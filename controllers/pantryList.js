@@ -220,18 +220,63 @@ module.exports.updatePantry = async (req, res) => {
                 }
             });
 
-            //save pair in database
-            await ShoppingListProductModel.create({
-                needed: Number(needed),
-                ShoppingListId: Number(foundShoppingList.id),
-                ProductId: Number(productId.trim())
+            //check if pair shopping list - product exists
+            const foundPair = await ShoppingListProductModel.findOne({
+                where: {
+                    ShoppingListId: Number(foundShoppingList.id),
+                    ProductId: Number(productId.trim())
+                }
             });
 
-            await PantryToShoppingModel.create({
-                productId: productId.trim(),
-                ShoppingListId: foundShoppingList.id,
-                PantryListId: foundPantryList.id
+            //check if pantry to shopping
+            const foundPantryToShopping = await PantryToShoppingModel.findOne({
+                where: {
+                    productId: productId.trim(),
+                    ShoppingListId: foundShoppingList.id,
+                    PantryListId: foundPantryList.id
+                }
             });
+
+            const foundPantryListProd = await PantryListProductModel.findOne({
+                where: {
+                    ProductId: productId.trim(),
+                    PantryListId: foundPantryList.id,
+                }
+            });
+
+            if (foundPair != null) {
+                console.log("Found pair");
+                //exists
+                //update amount
+                if (foundPantryToShopping != null) {
+                    foundPair.needed -= foundPantryListProd._previousDataValues.needed;
+                    foundPair.needed += Number(needed);
+                } else {
+                    foundPair.needed += Number(needed);
+                }
+
+                await foundPair.save();
+
+            } else {
+                console.log("Not found pair");
+                //pair does not exists
+                //save pair in database
+                await ShoppingListProductModel.create({
+                    needed: Number(needed),
+                    ShoppingListId: Number(foundShoppingList.id),
+                    ProductId: Number(productId.trim())
+                });
+            }
+
+
+            if (foundPantryToShopping == null) {
+                //does not exists
+                await PantryToShoppingModel.create({
+                    productId: productId.trim(),
+                    ShoppingListId: foundShoppingList.id,
+                    PantryListId: foundPantryList.id
+                });
+            }
         }
     }
 
@@ -257,24 +302,44 @@ module.exports.addProductToPantry = async (req, res) => {
     const { name, description, barcode, stock, needed, imageUrl } = req.body;
 
     try {
-        //add the product to the database
-        const newProduct = await ProductModel.create({
-            name, description, barcode, total_rating:0, nr_ratings:0
+
+        const foundProduct = await ProductModel.findOne({
+            where: {
+                name
+            }
         });
 
-        //add entry to represent that this product belongs to the specific pantry list
-        await PantryListProductModel.create({
-            stock: Number(stock),
-            needed: Number(needed),
-            PantryListId: foundList.id,
-            ProductId: newProduct.id,
-        });
+        //check if product exists(same name)
+        if (foundProduct != null) {
+            //exists
+            //add entry to represent that this product belongs to the specific pantry list
+            await PantryListProductModel.create({
+                stock: Number(stock),
+                needed: Number(needed),
+                PantryListId: foundList.id,
+                ProductId: foundProduct.id,
+            });
 
-        //save cloud url information
-        await ImageModel.create({
-            url: imageUrl,
-            productId: newProduct.id
-        });
+        } else {
+            //add the product to the database
+            const newProduct = await ProductModel.create({
+                name, description, barcode, total_rating: 0, nr_ratings: 0
+            });
+
+            //add entry to represent that this product belongs to the specific pantry list
+            await PantryListProductModel.create({
+                stock: Number(stock),
+                needed: Number(needed),
+                PantryListId: foundList.id,
+                ProductId: newProduct.id,
+            });
+
+            //save cloud url information
+            await ImageModel.create({
+                url: imageUrl,
+                productId: newProduct.id
+            });
+        }
 
     } catch (e) {
         console.log("Error: ", e);
@@ -393,7 +458,7 @@ module.exports.removeUserAccess = async (req, res) => {
     console.log("******************");
 
     const { listId } = req.params;
-    const { userEmail, ownerId } = req.body;
+    const { deleted } = req.body;
 
     const foundList = await PantryListModel.findOne({
         where: {
@@ -401,26 +466,123 @@ module.exports.removeUserAccess = async (req, res) => {
         }
     });
 
-    const foundUser = await UserModel.findOne({
-        where: {
-            id: ownerId.trim()
-        }
-    });
-
     const foundMatch = await UserPantryListModel.findOne({
         where: {
-            UserId: foundUser.id,
             PantryListId: foundList.id
         }
     });
 
-    await PantryListAccessGrantModel.destroy({
-        where: {
-            UserPantryId: foundMatch.id,
-            email: userEmail
-        }
-    });
+    for (let i = 0; i != deleted.length; i++) {
+        const splitUser = deleted[i].split(" -> ");
+        await PantryListAccessGrantModel.destroy({
+            where: {
+                UserPantryId: foundMatch.id,
+                email: splitUser[1].trim()
+            }
+        });
+    }
 
 
     res.status(200).send();
+}
+
+//get all users that share a list
+module.exports.getAllUsers = async (req, res) => {
+    console.log("******************");
+    console.log("Request to access all users of a specific pantry list.");
+    console.log(req.body);
+    console.log("******************");
+
+    const { listId } = req.params;
+
+    const sendInfo = {
+        users: []
+    }
+
+    const foundPantry = await PantryListModel.findOne({
+        where: {
+            uuid: listId.trim()
+        }
+    });
+
+    const accessGrants = await PantryListAccessGrantModel.findAll({
+        where: {
+            UserPantryId: foundPantry.id
+        }
+    });
+
+    for (let i = 0; i != accessGrants.length; i++) {
+        const foundUser = await UserModel.findOne({
+            where: {
+                email: accessGrants[i].email
+            }
+        });
+
+        if (foundUser != null) {
+            sendInfo.users.push(`${foundUser.username} -> ${foundUser.email}`);
+        }
+    }
+
+    //inser list owner
+    const foundOwner = await UserPantryListModel.findOne({
+        where: {
+            PantryListId: foundPantry.id
+        }
+    });
+
+    const foundOwnerUser = await UserModel.findOne({
+        where: {
+            id: foundOwner.UserId
+        }
+    });
+
+    sendInfo.users.push(`(owner) ${foundOwnerUser.username} -> ${foundOwnerUser.email}`);
+
+    res.status(200).send(JSON.stringify(sendInfo));
+}
+
+//get all shoppings where a product is being bought
+module.exports.getAllShops = async (req, res) => {
+    console.log("******************");
+    console.log("Request to access all shopping lists .");
+    console.log(req.body);
+    console.log("******************");
+
+    const { pantryId, productName } = req.params;
+
+    const foundPantry = await PantryListModel.findOne({
+        where: {
+            uuid: pantryId.trim()
+        }
+    });
+
+    const foundProduct = await ProductModel.findOne({
+        where: {
+            name: productName.trim()
+        }
+    });
+
+    const foundPantryToShopping = await PantryToShoppingModel.findAll({
+        where: {
+            productId: foundProduct.id,
+            PantryListId: foundPantry.id
+        }
+    });
+
+    const sendInfo = {
+        allshops: []
+    }
+
+    for (let i = 0; i != foundPantryToShopping.length; i++) {
+        const foundShopping = await ShoppingListModel.findOne({
+            where: {
+                id: foundPantryToShopping[i].id
+            }
+        });
+        sendInfo.allshops.push(foundShopping.uuid);
+    }
+
+    console.log(sendInfo);
+
+    res.status(200).send(JSON.stringify(sendInfo));
 }

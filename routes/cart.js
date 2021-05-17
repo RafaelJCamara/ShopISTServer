@@ -7,13 +7,13 @@ const cartController = require("../controllers/cart");
 */
 
 //get a cart by the shopping list's code
-router.get("/:shoppingId", cartController.getCart);
+router.get("/:shoppingId/:userId", cartController.getCart);
 
 //checkout a cart
-router.post("/checkout/:shoppingId", cartController.checkoutCart);
+router.post("/checkout/:shoppingId/:userId", cartController.checkoutCart);
 
 //create a new cart
-router.post("/createCart", cartController.createCart);
+router.post("/createCart/:userId", cartController.createCart);
 
 //add product to cart
 router.post("/:shoppingId/addProduct", cartController.addProductToCart);

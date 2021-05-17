@@ -5,6 +5,9 @@ const StoreModel = require("../models/store");
 const UserModel = require("../models/user");
 const UserShoppingListModel = require("../models/usershopping");
 const ShoppingListAccessGrantModel = require("../models/shoppingaccessgrant");
+const StoreProductModel = require("../models/storeproduct");
+
+const { Op } = require("sequelize");
 
 /**
  * UUID settings
@@ -106,22 +109,40 @@ module.exports.getList = async (req, res) => {
         include: ProductModel
     });
 
+    const prices = await StoreProductModel.findAll({
+        where: {
+            productId: {
+                [Op.in]: foundList.Products.map((el) => el.id)
+            }
+        }
+    });
 
     const shoppingListInfo = {
         name: foundList.name,
         products: [],
     };
 
+
     foundList.dataValues.Products.forEach(el => {
+
+        let prod_price = 0;
+
+        let p = prices.find((e) => e.ProductId == el.id);
+        if (p) {
+            prod_price = p.price;
+            console.log("heyou price here " + p.price);
+        }
+
         shoppingListInfo.products.push({
             productId: el.id,
             name: el.name,
             description: el.description,
-            needed: el.ShoppingListProduct.needed, 
+            needed: el.ShoppingListProduct.needed,
+            price: prod_price,
             total_rating: el.total_rating,
             nr_ratings: el.nr_ratings
         });
-        console.log(el.name +  " "+ el.id +  " " + "rating log: "+el.ShoppingListProduct.total_rating + " " + el.ShoppingListProduct.nr_ratings)
+        console.log(el.name + " " + el.id + " " + "price:" + prod_price + " " + "rating log: " + el.total_rating + " " + el.nr_ratings)
     });
 
     res.status(200).send(JSON.stringify(shoppingListInfo));
@@ -170,12 +191,6 @@ module.exports.getAllUserShoppingLists = async (req, res) => {
             all: true,
             nested: true
         }
-    });
-
-    foundACLs.forEach(el => {
-        const pantryListId = el.pantryUserId.dataValues.PantryListId;
-        // console.log(el.pantryUserId.dataValues)
-
     });
 
     for (let i = 0; i != foundACLs.length; i++) {
@@ -237,39 +252,92 @@ module.exports.grantUserAccess = async (req, res) => {
 //remove access to user for a specific pantry list
 module.exports.removeUserAccess = async (req, res) => {
     console.log("******************");
-    console.log("Request to remove access to a specific pantry list.");
+    console.log("Request to remove access to a specific shopping list.");
     console.log(req.body);
     console.log("******************");
 
     const { listId } = req.params;
-    const { userEmail, ownerId } = req.body;
+    const { deleted } = req.body;
 
-    const foundList = await PantryListModel.findOne({
+    const foundList = await ShoppingListModel.findOne({
         where: {
             uuid: listId.trim()
         }
     });
 
-    const foundUser = await UserModel.findOne({
+    const foundMatch = await UserShoppingListModel.findOne({
         where: {
-            id: ownerId.trim()
+            ShoppingListId: foundList.id
         }
     });
 
-    const foundMatch = await UserPantryListModel.findOne({
-        where: {
-            UserId: foundUser.id,
-            PantryListId: foundList.id
-        }
-    });
-
-    await PantryListAccessGrantModel.destroy({
-        where: {
-            UserPantryId: foundMatch.id,
-            email: userEmail
-        }
-    });
+    for (let i = 0; i != deleted.length; i++) {
+        const splitUser = deleted[i].split(" -> ");
+        await ShoppingListAccessGrantModel.destroy({
+            where: {
+                UserShoppingId: foundMatch.id,
+                email: splitUser[1].trim()
+            }
+        });
+    }
 
 
     res.status(200).send();
+}
+
+//get all users that share a list
+module.exports.getAllUsers = async (req, res) => {
+    console.log("******************");
+    console.log("Request to access all users of a specific shopping list.");
+    console.log(req.body);
+    console.log("******************");
+
+    const { listId } = req.params;
+
+    const sendInfo = {
+        users: []
+    }
+
+    const foundPantry = await ShoppingListModel.findOne({
+        where: {
+            uuid: listId.trim()
+        }
+    });
+
+    const accessGrants = await ShoppingListAccessGrantModel.findAll({
+        where: {
+            UserShoppingId: foundPantry.id
+        }
+    });
+
+    for (let i = 0; i != accessGrants.length; i++) {
+        const foundUser = await UserModel.findOne({
+            where: {
+                email: accessGrants[i].email
+            }
+        });
+
+        if (foundUser != null) {
+            sendInfo.users.push(`${foundUser.username} -> ${foundUser.email}`);
+        }
+    }
+
+    //inser list owner
+    const foundOwner = await UserShoppingListModel.findOne({
+        where: {
+            ShoppingListId: foundPantry.id
+        }
+    });
+
+    const foundOwnerUser = await UserModel.findOne({
+        where: {
+            id: foundOwner.UserId
+        }
+    });
+
+    sendInfo.users.push(`(owner) ${foundOwnerUser.username} -> ${foundOwnerUser.email}`);
+
+    console.log(sendInfo);
+
+    res.status(200).send(JSON.stringify(sendInfo));
 }

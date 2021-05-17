@@ -22,6 +22,8 @@ module.exports.createCart = async (req, res) => {
 
     const { shopId } = req.body;
 
+    const { userId } = req.params;
+
     const foundShoppingList = await ShoppingListModel.findOne({
         where: {
             uuid: shopId.trim()
@@ -35,46 +37,55 @@ module.exports.createCart = async (req, res) => {
         }
     });
 
+    const foundAllShoppingListProducts = await ShoppingListProduct.findAll({
+        where: {
+            ShoppingListId: foundShoppingList.id
+        }
+    });
+
+    let totalInCart = 0;
+        let qtyInCart = 0;
+
+    for (let i = 0; i != foundAllShoppingListProducts.length; i++) {
+        const foundStoreProduct = await StoreProduct.findOne({
+            where: {
+                ProductId: foundAllShoppingListProducts[i].ProductId,
+                StoreId: foundShoppingList.id,
+            }
+        });
+            qtyInCart += Number(foundAllShoppingListProducts[i].inCart);
+        totalInCart += (Number(foundStoreProduct.price) * Number(foundAllShoppingListProducts[i].inCart));
+    }
+
     if (foundCart == null) {
         //cart does not exists
         //create
-        const foundAllShoppingListProducts = await ShoppingListProduct.findAll({
-            where: {
-                ShoppingListId: foundShoppingList.id
-            }
-        });
-
-        let totalInCart = 0;
-        let qtyInCart = 0;
-
-        for (let i = 0; i != foundAllShoppingListProducts.length; i++) {
-            const foundStoreProduct = await StoreProduct.findOne({
-                where: {
-                    ProductId: foundAllShoppingListProducts[i].ProductId,
-                    StoreId: foundShoppingList.id,
-                }
-            });
-            qtyInCart += Number(foundAllShoppingListProducts[i].inCart);
-            totalInCart += (Number(foundStoreProduct.price) * Number(foundAllShoppingListProducts[i].inCart));
-        }
-
-
-
         await Cart.create({
             name: `${foundShoppingList.name} cart`,
             total: totalInCart,
             quantity: qtyInCart,
-            checkoutQueueTime: 1,
             shoppingId: foundShoppingList.id,
-            storeId: foundShoppingList.id
+            storeId: foundShoppingList.id,
+            userId
         });
+    } else {
+        await Cart.update({
+            total: totalInCart
+        },
+            {
+                where: {
+                    id: foundCart.id
+                }
+            }
+
+        );
     }
 
     res.status(200).send();
 }
 
 module.exports.getCart = async (req, res) => {
-    const { shoppingId } = req.params;
+    const { shoppingId, userId } = req.params;
 
     console.log("******************");
     console.log("Request for getting a cart.");
@@ -103,7 +114,8 @@ module.exports.getCart = async (req, res) => {
 
     const cart = await Cart.findOne({
         where: {
-            shoppingId: foundList.id
+            shoppingId: foundList.id,
+            userId
         },
     });
 
@@ -148,18 +160,22 @@ module.exports.checkoutCart = async (req, res) => {
     console.log("******************");
     console.log("Request for checking out.");
     console.log(req.body);
+    console.log(req.body.checkout.cartContents);
+    for (let a = 0; a != req.body.checkout.cartContents.length; a++) {
+        console.log(req.body.checkout.cartContents[a].contentsBought);
+    }
     console.log("******************");
 
-    const { shoppingId } = req.params;
+    const { shoppingId, userId } = req.params;
 
-    for (let i = 0; i != req.body.length; i++) {
-        const pantryListUuid = req.body[i].pantryList;
+    for (let i = 0; i != req.body.checkout.cartContents.length; i++) {
+        const pantryListUuid = req.body.checkout.cartContents[i].pantryUuid;
         const foundPantry = await PantryListModel.findOne({
             where: {
-                uuid: pantryListUuid
+                uuid: pantryListUuid.trim()
             }
         });
-        const boughtObjects = req.body[i].bought;
+        const boughtObjects = req.body.checkout.cartContents[i].contentsBought;
         //add to number of times a product as been bought (for suggestion purporses)
         for (let j = 0; j != boughtObjects.length; j++) {
 
@@ -177,89 +193,108 @@ module.exports.checkoutCart = async (req, res) => {
                 }
             });
 
-            const currentStock = foundPantryProduct.stock;
-            const currentNeeded = foundPantryProduct.needed;
+            if (foundPantryProduct != null) {
+                const currentStock = foundPantryProduct.stock;
+                const currentNeeded = foundPantryProduct.needed;
 
-            foundPantryProduct.stock = currentStock + Number(boughtObjects[j].quantity);
-            foundPantryProduct.needed = currentNeeded - Number(boughtObjects[j].quantity);
+                foundPantryProduct.stock = currentStock + Number(boughtObjects[j].amountBought);
+                foundPantryProduct.needed = currentNeeded - Number(boughtObjects[j].amountBought);
 
-            await foundPantryProduct.save();
+                await foundPantryProduct.save();
 
-            //remove products from shopping list
-            const foundShopping = await ShoppingListModel.findOne({
-                where: {
-                    uuid: shoppingId
+                //remove products from shopping list
+                const foundShopping = await ShoppingListModel.findOne({
+                    where: {
+                        uuid: shoppingId.trim()
+                    }
+                });
+
+                const foundShoppingProduct = await ShoppingListProduct.findOne({
+                    where: {
+                        ShoppingListId: foundShopping.id,
+                        ProductId: foundProduct.id
+                    }
+                });
+
+                if (foundShoppingProduct != null) {
+                    const currentNeededShop = foundShoppingProduct.needed;
+                    foundShoppingProduct.needed = currentNeededShop - Number(boughtObjects[j].amountBought);
+                    foundShoppingProduct.inCart = 0;
+                    await foundShoppingProduct.save();
                 }
-            });
-
-            const foundShoppingProduct = await ShoppingListProduct.findOne({
-                where: {
-                    ShoppingListId: foundShopping.id,
-                    ProductId: foundProduct.id
-                }
-            });
-
-            if (foundShoppingProduct != null) {
-                const currentNeededShop = foundShoppingProduct.needed;
-                foundShoppingProduct.needed = currentNeededShop - Number(boughtObjects[j].quantity);
-                foundShoppingProduct.inCart = 0;
-                await foundShoppingProduct.save();
-            }
 
 
+                //suggestion purposes (below)
+                const previousCounter = foundProduct.counter;
+                foundProduct.counter = Number(previousCounter) + 1;
+                await foundProduct.save();
 
-            //suggestion purposes (below)
-            const previousCounter = foundProduct.counter;
-            foundProduct.counter = Number(previousCounter) + 1;
-            await foundProduct.save();
-
-            //add all pairs together (for suggestion purposes)
-            for (let x = j + 1; x < boughtObjects.length; x++) {
-                const secondFoundProduct = await ProductModel.findOne({
-                    where: {
-                        name: boughtObjects[x].productName
-                    }
-                });
-
-
-                const firstSearch = await SuggestionModel.findOne({
-                    where: {
-                        productone: foundProduct.id,
-                        producttwo: secondFoundProduct.id,
-                    }
-                });
-
-                const secondSearch = await SuggestionModel.findOne({
-                    where: {
-                        productone: secondFoundProduct.id,
-                        producttwo: foundProduct.id,
-                    }
-                });
-
-                if (firstSearch != null || secondSearch != null) {
-                    //already a pair
-                    if (firstSearch != null) {
-                        //pair in the first order
-                        //update pair amount
-                        const currentAmount = firstSearch.dataValues.amount;
-                        firstSearch.amount = Number(currentAmount) + 1;
-                        await firstSearch.save();
-                    } else {
-                        //pair in the second order
-                        //update pair amount
-                        const currentAmount = secondSearch.dataValues.amount;
-                        secondSearch.amount = Number(currentAmount) + 1;
-                        await secondSearch.save();
-                    }
-
-                } else {
-                    //there is no such pair
-                    await SuggestionModel.create({
-                        productone: foundProduct.id,
-                        producttwo: secondFoundProduct.id,
-                        amount: 1
+                //add all pairs together (for suggestion purposes)
+                for (let x = j + 1; x < boughtObjects.length; x++) {
+                    const secondFoundProduct = await ProductModel.findOne({
+                        where: {
+                            name: boughtObjects[x].productName
+                        }
                     });
+
+
+                    const firstSearch = await SuggestionModel.findOne({
+                        where: {
+                            productone: foundProduct.id,
+                            producttwo: secondFoundProduct.id,
+                        }
+                    });
+
+                    const secondSearch = await SuggestionModel.findOne({
+                        where: {
+                            productone: secondFoundProduct.id,
+                            producttwo: foundProduct.id,
+                        }
+                    });
+
+                    if (firstSearch != null || secondSearch != null) {
+                        //already a pair
+                        if (firstSearch != null) {
+                            //pair in the first order
+                            //update pair amount
+                            const currentAmount = firstSearch.dataValues.amount;
+                            firstSearch.amount = Number(currentAmount) + 1;
+                            await firstSearch.save();
+                        } else {
+                            //pair in the second order
+                            //update pair amount
+                            const currentAmount = secondSearch.dataValues.amount;
+                            secondSearch.amount = Number(currentAmount) + 1;
+                            await secondSearch.save();
+                        }
+
+                    } else {
+                        //there is no such pair
+                        await SuggestionModel.create({
+                            productone: foundProduct.id,
+                            producttwo: secondFoundProduct.id,
+                            amount: 1
+                        });
+                    }
                 }
+
+                //delete cart after shopping
+                await Cart.destroy({
+                    where: {
+                        shoppingId: foundShopping.id,
+                        userId
+                    }
+                });
+
+                //remove fully bought products from shopping list
+                await ShoppingListProduct.destroy({
+                    where: {
+                        ShoppingListId: foundShopping.id,
+                        inCart: {
+                            [Op.eq]: 0,
+                        }
+                    }
+                });
             }
 
         }
