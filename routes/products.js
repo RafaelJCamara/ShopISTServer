@@ -26,4 +26,7 @@ router.get("/:productName/getUrl", productController.getProductUrl);
 //get product suggestion
 router.get("/:productName/suggestions", productController.getProductSugggestions);
 
+//add product suggestions
+router.post("/suggestions/addsuggestedproduct", productController.addProductSuggested);
+
 module.exports = router;

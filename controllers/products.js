@@ -5,6 +5,8 @@ const StoreProductModel = require("../models/storeproduct");
 const ShoppingListModel = require("../models/shoppinglist");
 const ProductModel = require("../models/product");
 const ProductSuggestionsModel = require("../models/suggestion");
+const ShoppingListProductModel = require("../models/shoppinglistproduct");
+
 
 //when someone wants to create a product
 module.exports.createProduct = async (req, res) => {
@@ -257,7 +259,9 @@ module.exports.getProductSugggestions = async (req, res) => {
             if ((amountInPairs / maxAmount) > 0.5) {
                 allSuggested.push({
                     pname: foundPTwo.name,
-                    delta: (amountInPairs / maxAmount)
+                    delta: (amountInPairs / maxAmount),
+                    pdescription: foundPTwo.description,
+                    pid: foundPTwo.id
                 });
             }
         }
@@ -285,7 +289,9 @@ module.exports.getProductSugggestions = async (req, res) => {
             if ((amountInPairs / maxAmount) > 0.5) {
                 allSuggested.push({
                     pname: foundPOne.name,
-                    delta: (amountInPairs / maxAmount)
+                    delta: (amountInPairs / maxAmount),
+                    pdescription: foundPOne.description,
+                    pid: foundPOne.id
                 });
             }
         }
@@ -293,16 +299,64 @@ module.exports.getProductSugggestions = async (req, res) => {
 
     let maxValue = -1;
     let maxName = "";
+    let maxDescription = "";
+    let maxId = "";
 
     for (let i = 0; i != allSuggested.length; i++) {
         if (allSuggested[i].delta > maxValue) {
             maxName = allSuggested[i].pname;
+            maxDescription = allSuggested[i].pdescription;
+            maxId = allSuggested[i].pid;
         }
     }
 
+    const foundImage = await ImageModel.findOne({
+        where: {
+            productId: maxId
+        }
+    });
+
     const sendInfo = {
-        name: maxName
+        productName: maxName,
+        productDescription: maxDescription,
+        productImageUrl: foundImage.url
     }
 
     res.status(200).send(JSON.stringify(sendInfo));
+}
+
+module.exports.addProductSuggested = async (req, res) => {
+    console.log("**********************************");
+    console.log("There was a request to add a product suggested.");
+    console.log(req.body);
+    console.log("**********************************");
+
+    const { productName, amountToBuy, allShops } = req.body;
+
+    const allShopsSplitted = allShops.split(",");
+
+    const foundProduct = await ProductModel.findOne({
+        where: {
+            name: productName.trim()
+        }
+    });
+
+    for (let i = 0; i != allShopsSplitted.length; i++) {
+        if (allShopsSplitted[i]) {
+
+            const foundShoppingList = await ShoppingListModel.findOne({
+                where: {
+                    uuid: allShopsSplitted[i].trim()
+                }
+            });
+
+            await ShoppingListProductModel.create({
+                needed: Number(amountToBuy),
+                ShoppingListId: foundShoppingList.id,
+                ProductId: foundProduct.id
+            });
+        }
+    }
+
+    res.status(200).send();
 }
