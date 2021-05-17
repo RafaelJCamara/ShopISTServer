@@ -46,6 +46,8 @@ router.post("/pantry/:listId/removeaccess", pantryListController.removeUserAcces
 //get all users that share a pantry list
 router.get("/pantry/:listId/getallusers", pantryListController.getAllUsers);
 
+//get all shoppings lists a product is being bought
+router.get("/list/pantry/:pantryId/allshops/:productName", pantryListController.getAllShops);
 
 /*
     Shopping list routes

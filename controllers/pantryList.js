@@ -540,3 +540,49 @@ module.exports.getAllUsers = async (req, res) => {
 
     res.status(200).send(JSON.stringify(sendInfo));
 }
+
+//get all shoppings where a product is being bought
+module.exports.getAllShops = async (req, res) => {
+    console.log("******************");
+    console.log("Request to access all shopping lists .");
+    console.log(req.body);
+    console.log("******************");
+
+    const { pantryId, productName } = req.params;
+
+    const foundPantry = await PantryListModel.findOne({
+        where: {
+            uuid: pantryId.trim()
+        }
+    });
+
+    const foundProduct = await ProductModel.findOne({
+        where: {
+            name: productName.trim()
+        }
+    });
+
+    const foundPantryToShopping = await PantryToShoppingModel.findAll({
+        where: {
+            productId: foundProduct.id,
+            PantryListId: foundPantry.id
+        }
+    });
+
+    const sendInfo = {
+        allshops: []
+    }
+
+    for (let i = 0; i != foundPantryToShopping.length; i++) {
+        const foundShopping = await ShoppingListModel.findOne({
+            where: {
+                id: foundPantryToShopping[i].id
+            }
+        });
+        sendInfo.allshops.push(foundShopping.uuid);
+    }
+
+    console.log(sendInfo);
+
+    res.status(200).send(JSON.stringify(sendInfo));
+}
