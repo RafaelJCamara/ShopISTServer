@@ -132,16 +132,18 @@ module.exports.getList = async (req, res) => {
             prod_price = p.price;
             console.log("heyou price here " + p.price);
         }
-
-        shoppingListInfo.products.push({
-            productId: el.id,
-            name: el.name,
-            description: el.description,
-            needed: el.ShoppingListProduct.needed,
-            price: prod_price,
-            total_rating: el.total_rating,
-            nr_ratings: el.nr_ratings
-        });
+        if(el.ShoppingListProduct.needed > 0) {
+            shoppingListInfo.products.push({
+                productId: el.id,
+                name: el.name,
+                description: el.description,
+                needed: el.ShoppingListProduct.needed,
+                quantity: el.ShoppingListProduct.inCart,
+                price: prod_price,
+                total_rating: el.total_rating,
+                nr_ratings: el.nr_ratings
+            });
+        }
         console.log(el.name + " " + el.id + " " + "price:" + prod_price + " " + "rating log: " + el.total_rating + " " + el.nr_ratings)
     });
 

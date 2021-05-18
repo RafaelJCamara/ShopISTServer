@@ -130,8 +130,8 @@ module.exports.getCart = async (req, res) => {
     var cartInfo = {
         name: cart.name,
         checkoutQueueTime: cart.checkoutQueueTime,
-        total: cart.total,
-        quantity: cart.quantity,
+        total: 0,
+        quantity: 0,
         products: []
     };
 
@@ -287,14 +287,14 @@ module.exports.checkoutCart = async (req, res) => {
                 });
 
                 //remove fully bought products from shopping list
-                await ShoppingListProduct.destroy({
+                /*await ShoppingListProduct.destroy({
                     where: {
                         ShoppingListId: foundShopping.id,
                         inCart: {
                             [Op.eq]: 0,
                         }
                     }
-                });
+                });*/
             }
 
         }
