@@ -279,7 +279,7 @@ module.exports.getRatingHist = async (req, res) => {
     });
 
     const sendInfo = {
-        name: foundProduct.id,
+        productName: foundProduct.name,
         c1: class1,
         c2: class2,
         c3: class3,
