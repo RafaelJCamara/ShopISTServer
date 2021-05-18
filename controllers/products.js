@@ -5,6 +5,7 @@ const StoreProductModel = require("../models/storeproduct");
 const ShoppingListModel = require("../models/shoppinglist");
 const ProductModel = require("../models/product");
 const ProductSuggestionsModel = require("../models/suggestion");
+const ProductRatingModel = require("../models/productrating");
 
 //when someone wants to create a product
 module.exports.createProduct = async (req, res) => {
@@ -205,6 +206,68 @@ module.exports.rateProduct = async (req, res) => {
         );
         
 };
+
+module.exports.addProductRating = async (req, res) => {
+    console.log("**********************************");
+    console.log("There was a request to rate product.");
+    console.log("**********************************");
+    console.log(req.body);
+
+
+    const { productId } = req.params;
+    const { productRating } = req.body;
+
+
+
+    await ProductRatingModel.create({
+        rating: Number(productRating),
+        productId
+    });
+
+    res.status(200).send();
+};
+
+module.exports.getRating = async (req, res) => {
+    console.log("**********************************");
+    console.log("There was a request to get rate product.");
+    console.log("**********************************");
+
+    const { productId } = req.params;
+    let totalRating = 0;
+    let nrRatings = 0;
+
+
+    const foundProduct = await ProductModel.findOne({
+        where: {
+            id: productId
+        }
+    });
+
+    const ratings = await ProductRatingModel.findAll({
+        where: {
+            productId : foundProduct.id
+        }
+    })
+    
+    ratings.forEach(el => {
+        nrRatings += Number(el.rating);
+        totalRating++;
+    });
+
+    rating = nrRatings/totalRating;
+    
+    console.log(rating);
+
+    const sendInfo = {
+        classification: rating
+    }
+
+    res.status(200).send(JSON.stringify(sendInfo));
+
+};
+
+
+
 //get product suggestions
 module.exports.getProductSugggestions = async (req, res) => {
     console.log("**********************************");

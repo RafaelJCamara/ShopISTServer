@@ -26,6 +26,7 @@ const UserShoppingModel = require("./models/usershopping");
 const PantryListAccessGrant = require("./models/pantryaccessgrant");
 const ShoppingListAccessGrant = require("./models/shoppingaccessgrant");
 const SuggestionModel = require("./models/suggestion");
+const ProductRatingModel = require("./models/productrating");
 const fs = require('fs');
 const https = require('https');
 
@@ -161,6 +162,19 @@ ImageModel.belongsTo(ProductModel, {
 
 
 /**
+ * 1-M relationship between ratings and Products
+ */
+ ProductModel.hasMany(ProductRatingModel, {
+    foreignKey: "productId",
+    as: "productrating"
+});
+ProductRatingModel.belongsTo(ProductModel, {
+    foreignKey: "productId",
+    as: "product"
+});
+
+
+/**
  * 1-M relationship between Images and Products
  */
 StoreModel.hasMany(WaitTimeModel, {
@@ -183,6 +197,10 @@ WaitingTimeInfoModel.belongsTo(StoreModel, {
     foreignKey: "storeId",
     as: "store"
 });
+
+/**
+ * 1-M relationship between Store and WaitingTimeInfo
+ */
 
 
 /**

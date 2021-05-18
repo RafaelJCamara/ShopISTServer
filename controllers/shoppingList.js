@@ -139,10 +139,10 @@ module.exports.getList = async (req, res) => {
             description: el.description,
             needed: el.ShoppingListProduct.needed, 
             price: prod_price,
-            total_rating: el.total_rating,
-            nr_ratings: el.nr_ratings
+            //total_rating: el.total_rating,
+            //nr_ratings: el.nr_ratings
         });
-        console.log(el.name +  " "+ el.id +  " " + "price:"+ prod_price +" "+ "rating log: "+el.total_rating + " " + el.nr_ratings)
+        console.log(el.name +  " "+ el.id +  " " + "price:"+ prod_price +" ")
     });
 
     res.status(200).send(JSON.stringify(shoppingListInfo));

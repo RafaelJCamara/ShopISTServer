@@ -14,6 +14,12 @@ router.get("/search/:productPartialName", productController.autocompleteProductN
 //add photo to product
 router.post("/:productId/addPhoto", productController.addPhoto);
 
+//add rating to product
+router.post("/:productId/addProductRating", productController.addProductRating);
+
+//get rating to product
+router.get("/:productId/getProductRating", productController.getRating);
+
 //add price to a product (when in a store)
 router.post("/:productId/addPrice", productController.addProductPrice);
 
