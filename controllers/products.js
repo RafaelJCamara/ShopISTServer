@@ -179,39 +179,6 @@ module.exports.addProductPrice = async (req, res) => {
     res.status(200).send();
 };
 
-module.exports.rateProduct = async (req, res) => {
-    console.log("**********************************");
-    console.log("There was a request to rate a product.");
-    console.log("**********************************");
-    console.log(req.body);
-    console.log(req.params);
-    console.log("**********************************");
-
-    const { productId } = req.params;
-    const { productRating } = req.body;
-
-    //try{
-    const foundProduct = await Product.findOne({
-        where: {
-            id: productId.trim(),
-            //barcode: productBarcode
-        }
-    });
-
-    await Product.update(
-        {
-            total_rating: Number(foundProduct.total_rating) + Number(productRating.trim()),
-            nr_ratings: Number(foundProduct.nr_ratings) + 1,
-        },
-        {
-            where: {
-                id: foundProduct.id,
-            }
-        }
-    );
-
-};
-
 module.exports.addProductRating = async (req, res) => {
     console.log("**********************************");
     console.log("There was a request to rate product.");
@@ -273,8 +240,14 @@ module.exports.getRating = async (req, res) => {
 
 module.exports.getRatingHist = async (req, res) => {
     console.log("**********************************");
-    console.log("There was a request to get rate product.");
+    console.log("There was a request to get rating histogram.");
     console.log("**********************************");
+
+    var class1= 0;
+    var class2= 0;
+    var class3= 0;
+    var class4= 0;
+    var class5= 0;
 
     const { productId } = req.params;
 
@@ -291,32 +264,29 @@ module.exports.getRatingHist = async (req, res) => {
         }
     })
 
-    const sendList = {
-        name: foundProduct.id,
-        c0: 0,
-        c1: 0,
-        c2: 0,
-        c3: 0,
-        c4: 0,
-        c5: 0,
-    };
     
     ratings.forEach(el => {
-        if(el.rating<0.5){sendList.c0++;}
 
-        else if(el.rating>=0.5 && el.rating<1.5){ sendInfo.c1++;}
+        if (Number(el.rating)>0.0 && el.rating<=1.0){class1++;}
 
-        else if(el.rating>=1.5 && el.rating<2.5){ sendInfo.c2++;}
+        else if(Number(el.rating)>1.0 && el.rating<=2.0){class2++;}
 
-        else if(el.rating>=2.5 && el.rating<3.5){ sendInfo.c3++;}
+        else if(Number(el.rating)>2.0 && el.rating<=3.0){class3++;}
         
-        else if(el.rating>=3.5 && el.rating<4.5){ sendInfo.c4++;}
+        else if(Number(el.rating)>3.0 && el.rating<=4.0){class4++;}
 
-        else if(el.rating>=4.5){ sendInfo.c5++;}
+        else if(Number(el.rating)>4.0){class5++;}
     });
-    
-    console.log(sendInfo);
 
+    const sendInfo = {
+        name: foundProduct.id,
+        c1: class1,
+        c2: class2,
+        c3: class3,
+        c4: class4,
+        c5: class5
+    };
+    
     res.status(200).send(JSON.stringify(sendInfo));
 
 };

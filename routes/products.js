@@ -20,11 +20,11 @@ router.post("/:productId/addProductRating", productController.addProductRating);
 //get rating to product
 router.get("/:productId/getProductRating", productController.getRating);
 
+//get rating to product
+router.get("/:productId/getProductRatingHist", productController.getRatingHist);
+
 //add price to a product (when in a store)
 router.post("/:productId/addPrice", productController.addProductPrice);
-
-//update product rate
-router.post("/:productId/rateProduct", productController.rateProduct);
 
 //get product image
 router.get("/:productName/getUrl", productController.getProductUrl);
