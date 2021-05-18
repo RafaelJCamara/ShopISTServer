@@ -266,6 +266,57 @@ module.exports.getRating = async (req, res) => {
 
 };
 
+module.exports.getRatingHist = async (req, res) => {
+    console.log("**********************************");
+    console.log("There was a request to get rate product.");
+    console.log("**********************************");
+
+    const { productId } = req.params;
+
+
+    const foundProduct = await ProductModel.findOne({
+        where: {
+            id: productId
+        }
+    });
+
+    const ratings = await ProductRatingModel.findAll({
+        where: {
+            productId : foundProduct.id
+        }
+    })
+
+    const sendList = {
+        name: foundProduct.id,
+        c0: 0,
+        c1: 0,
+        c2: 0,
+        c3: 0,
+        c4: 0,
+        c5: 0,
+    };
+    
+    ratings.forEach(el => {
+        if(el.rating<0.5){sendList.c0++;}
+
+        else if(el.rating>=0.5 && el.rating<1.5){ sendInfo.c1++;}
+
+        else if(el.rating>=1.5 && el.rating<2.5){ sendInfo.c2++;}
+
+        else if(el.rating>=2.5 && el.rating<3.5){ sendInfo.c3++;}
+        
+        else if(el.rating>=3.5 && el.rating<4.5){ sendInfo.c4++;}
+
+        else if(el.rating>=4.5){ sendInfo.c5++;}
+    });
+    
+    console.log(sendInfo);
+
+    res.status(200).send(JSON.stringify(sendInfo));
+
+};
+
+
 
 
 //get product suggestions
